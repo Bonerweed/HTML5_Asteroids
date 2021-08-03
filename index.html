@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Cool Asteroids Test Tool</title>
+    <style>
+			body {
+				background: #272822;
+				color: #F1F8F2;
+				font-family: 'Courier New', monospace;
+			}
+			canvas, div {
+				background: #1E1F1C;
+			}
+			#gameDiv {
+				width:800px;
+				height: 600px;
+				display: inline-block;
+			}
+		</style>
+  </head>
+  <body>
+		<script type = "module" src="main.js" defer></script>
+    <div id="gameDiv">
+      <!-- gameCanvas will be generated here through code-->
+    </div>
+		<canvas id="perfCanvas" width="1000" height="600"></canvas>
+		<br>
+		<p style="color:green;">TEST 1 : 1000  Sprites</p>
+		<p style="color:orange">TEST 2 : 5000  Sprites</p>
+		<p style="color:red">TEST 3 : 10000 Sprites</p>
+		<p style="color:cyan">TEST 4 : +1 Per frame</p>
+		<!--<button onclick="start()">Start Testing</button>-->
+    <div id="debugDiv">
+    </div>
+  </body>
+</html>
