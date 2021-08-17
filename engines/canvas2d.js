@@ -114,4 +114,10 @@ export default class Canvas2DTest {
 		}
 		return false;
 	}
+
+	destroy() {
+		this.ctx.clearRect(0, 0, this.cnv.width, this.cnv.height);
+		this.cnv.remove();
+		this.cnv = null;
+	}
 }

@@ -1,17 +1,43 @@
 /*do imports here*/
 import Canvas2DTest from "./engines/canvas2d.js";
 //import WebGlTest from "./engines/webgl.js"
+import PhaserTest from "./engines/phaser.js";
+import PixiTest from "./engines/pixi.js";
+import P5Test from "./engines/p5.js";
 
-const gameDiv = document.getElementById('gameDiv');
-const debugDiv = document.getElementById('debugDiv');
+const gameDiv = document.getElementById("gameDiv");
+const debugDiv = document.getElementById("debugDiv");
 
-const startButton = document.createElement('button');
+const engineSelector = document.createElement("select");
+engineSelector.name = "engines";
+engineSelector.id = "engineSelect";
+const engines = ["Canvas2D", "WebGL2D", "Phaser", "Pixi", "P5"];
+for (let i = 0; i < engines.length; i++) {
+  const option = document.createElement("option");
+  option.value = engines[i];
+  option.text = engines[i];
+  engineSelector.appendChild(option);
+}
+debugDiv.appendChild(engineSelector);
+
+const startButton = document.createElement("button");
 startButton.onclick = start;
 startButton.textContent = "Start";
 debugDiv.appendChild(startButton);
 
-const perfCnv = document.getElementById('perfCanvas');
-const perfCtx = perfCnv.getContext('2d');
+const checkBox = document.createElement("input");
+checkBox.type = "checkbox";
+checkBox.id = "failstate";
+const label = document.createElement("label");
+label.htmlFor = "failstate";
+label.appendChild(document.createTextNode("Allow failstate"));
+
+debugDiv.appendChild(checkBox);
+debugDiv.appendChild(label);
+
+
+const perfCnv = document.getElementById("perfCanvas");
+const perfCtx = perfCnv.getContext("2d");
 perfCtx.imageSmoothingEnabled	= false;
 
 const height = perfCnv.height;
@@ -29,7 +55,7 @@ function drawGrid() {
   perfCtx.textAlign = "start";
 
   for (let i = 0; i <= 12; i++) {
-    let yPos = height - i * step;
+    const yPos = height - (i * step);
     if (yPos > 0 && yPos < height) {
       perfCtx.fillRect(0, yPos, 10, 1);
       perfCtx.fillText((i * 10).toString(), 15, yPos);
@@ -40,7 +66,7 @@ function drawGrid() {
   perfCtx.fillText("FPS", 2, 10);
 }
 //Count	, Color
-const tests = [ [10000	, "Green"	],//00
+const tests = [ [10	, "Green"	],//00
 				[5000	, "Orange"	],
 				[10000	, "Red"		],
 				[0		, "Cyan"	] ] // 0 is for Dynamic
@@ -88,11 +114,43 @@ let max = 1;
 let testIndex = 0;
 let currentEngine;
 let test;
+let frameRequestId = null;
 
 function start() {
-	//currentEngine = new WebGlTest(gameDiv, resources, sprites);
-	currentEngine = new Canvas2DTest(gameDiv, resources, sprites);
-
+  if (frameRequestId) {
+      cancelAnimationFrame(frameRequestId);
+      frameRequestId = null;
+  }
+  if (currentEngine) {
+    currentEngine.destroy();
+  }
+  gameDiv.innerHTML = "";
+  const chosenEngine = document.getElementById("engineSelect").value;
+  console.log(chosenEngine);
+  switch(chosenEngine){
+    case ("Canvas2D"):
+      console.log("canvas selected");
+      currentEngine = new Canvas2DTest(gameDiv, resources, sprites);
+      break;
+    case ("WebGL2D"):
+      console.log("webgl selected");
+      //currentEngine = new WebGlTest(gameDiv, resources, sprites);
+      break;
+    case ("Phaser"):
+      console.log("phaser selected");
+      currentEngine = new PhaserTest(gameDiv, resources, sprites, tests[0]);
+      break;
+    case ("Pixi"):
+      console.log("Pixi selected");
+      currentEngine = new PixiTest(gameDiv, resources, sprites, tests[0]);
+      break;
+    case ("P5"):
+      console.log("P5 selected");
+      currentEngine = new P5Test(gameDiv, resources, sprites, tests[0]);
+      break;
+  }
+	//currentEngine = new Canvas2DTest(gameDiv, resources, sprites);
+  //const isFailChecked = document.getElementById("failstate").value;
 	update();
 }
 const inputhistory = [];
@@ -138,7 +196,7 @@ function update() {
 	}
 
 if (!gameOver) {
-  requestAnimationFrame(update);
+  frameRequestId = requestAnimationFrame(update);
 }
 else {
   alert("ouch");
