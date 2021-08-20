@@ -1,8 +1,8 @@
 export default class Canvas2DTest {
 	constructor(div, resourceLocations, sprites) {
 		this.cnv = document.createElement('canvas');
-    this.cnv.width  = div.offsetWidth;
-    this.cnv.height = div.offsetHeight;
+		this.cnv.width  = div.offsetWidth;
+		this.cnv.height = div.offsetHeight;
 		div.appendChild(this.cnv);
 
 		this.ctx = this.cnv.getContext('2d');

@@ -1,51 +1,63 @@
-//import * as PIXI from "pixi";
-export default class PixiTest {
+export default class Babylon2dTest {
 	constructor(div, resourceLocations, sprites, firstMax) {
-		//this.app = new PIXI.Application();
-		//div.appendChild(this.app.view);
 		this.rawSprites = sprites;
+
 		this.gameElements = [];
-		this.rockImage = resourceLocations.get("rock");
-		this.shipImage = resourceLocations.get("ship");
-		this.initPixi(div, resourceLocations, sprites, firstMax);
+
+		this.initBabylon(div, resourceLocations, sprites, firstMax);
 	}
 
-	async initPixi(div, resourceLocations, sprites, firstMax) {
+	async initBabylon(div, resourceLocations, sprites, firstMax) {
 		console.log("starting promise");
 		const promise = new Promise((resolve, reject) => {
 				const script = document.createElement("script");
 				script.type = "text/javascript";
 				script.onload = () => {resolve()};
 				script.onerror = () => {reject};
-				script.src = "./engines/resources/pixi.min.js";
+				script.src = "./engines/resources/babylon.js";
 				document.body.appendChild(script);
 		});
-		//script.onload = scriptLoaded;
+
 		await promise;
 		console.log("promise over");
-		const app = new PIXI.Application(div.offsetWidth, div.offsetHeight);
-		console.log(app);
-		this.app = app;
-		div.appendChild(this.app.view);
 
-		this.gameContainer = new PIXI.Container();
-		this.app.stage.addChild(this.gameContainer);
+		const cnv = document.createElement('canvas');
+		cnv.width  = div.offsetWidth;
+		cnv.height = div.offsetHeight;
+		div.appendChild(cnv);
 
-		this.ship = PIXI.Sprite.from(this.shipImage);
-		this.gameContainer.addChild(this.ship);
+		const engine = new BABYLON.Engine(cnv, true);
+		this.scene = new BABYLON.Scene(engine);
+
+		const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -1), this.scene);
+		camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+		camera.orthoLeft = 0;
+		camera.orthoRight = div.offsetWidth;
+		camera.orthoTop = 0;
+		camera.orthoBottom = div.offsetHeight;
+
+		const spriteManagerShip = new BABYLON.SpriteManager("ship", resourceLocations.get("ship"), 1, {width: 24, height: 24});
+
 		const shipSprite = this.rawSprites[0];
-		this.ship.anchor.set(0.5);
-		this.ship.position.set(shipSprite.posX, shipSprite.posY);
 
-		for (let i = 0; i < firstMax; i++) {
-			const sprite = this.rawSprites[i+1];
+		this.ship = new BABYLON.Sprite("ship", spriteManagerShip);
+		this.ship.invertV = true; // As we draw the orthographic camera from 0 -> Height our sprites are reversed.
+		this.ship.width = 24;
+		this.ship.height = 24;
+		this.ship.position.set(shipSprite.posX, shipSprite.posY, 0);
+
+		const spriteManagerRock = new BABYLON.SpriteManager("rock", resourceLocations.get("rock"), firstMax[0], {width: 24, height: 24});
+
+		for (let i = 0; i < firstMax[0]; i++) {
+			const sprite = this.rawSprites[i + 1];
 			const x = ((sprite.posX % 824) + 824) % 824 - 24;
 			const y = ((sprite.posY % 624) + 624) % 624 - 24;
-			const rock = PIXI.Sprite.from(this.rockImage);
-			rock.anchor.set(0.5);
-			rock.position.set(x, y);
+			const rock = new BABYLON.Sprite("rock", spriteManagerRock);
+			this.ship.invertV = true; // As we draw the orthographic camera from 0 -> Height our sprites are reversed.
+			rock.width = 24;
+			rock.height = 24;
+			rock.position.set(sprite.posX, sprite.posY, 0);
 			this.gameElements.push(rock);
-			this.gameContainer.addChild(rock);
 		}
 	}
 
@@ -58,7 +70,7 @@ export default class PixiTest {
 			const rockSprite = this.rawSprites[i + 1];
 			const x = (((rockSprite.posX + (rockSprite.velX * frame)) % 824) + 824) % 824 - 24;
 			const y = (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24;
-			rock.position.set(x, y);
+			rock.position.set(x, y, 0);
 		}
 		const shipSprite = this.rawSprites[0];
 		//Y position
@@ -92,16 +104,18 @@ export default class PixiTest {
 		shipSprite.posY += shipSprite.velY;
 		const x = ((shipSprite.posX % 824) + 828) % 824 - 28;
 		const y = ((shipSprite.posY % 624) + 628) % 624 - 28;
-		this.ship.position.set(x, y);
+		this.ship.position.set(x, y, 0);
+
+		this.scene.render();
 	}
 
 	checkCollision() {
-		const shipPos = new PIXI.Point().copyFrom(this.ship.position);
+		const shipPos = this.ship.position;
+		
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const sprite = this.gameElements[i];
-			const dx = (shipPos.x - sprite.position.x);
-			const dy = (shipPos.y - sprite.position.y);
-			const diff = Math.sqrt( (dx * dx) + (dy * dy) );
+			const diff = BABYLON.Vector3.Distance(shipPos, sprite.position);
+
 			//console.log(diff);
 			//debugger;
 			if (diff <= 12) {
@@ -112,6 +126,6 @@ export default class PixiTest {
 			}
 		}
 	}
-
+	
 	destroy() {}
 }

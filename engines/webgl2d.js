@@ -19,7 +19,7 @@ export default class WebGlTest {
 
 		// Vertex Shader
 		const vsSource = `
-			attribute vec4 aPos;
+			attribute vec2 aPos;
 			attribute vec2 aUV;
 			attribute vec2 aOffset;
 
@@ -52,10 +52,10 @@ export default class WebGlTest {
 		const spriteWidth = (24 / cnv.width) * 2;
 		const spriteHeight = (24 / cnv.height) * 2;
 
-		const pos = [-1					, 1			   	  , 0,
-					 -1 + spriteWidth	, 1			      , 0,
-					 -1 + spriteWidth	, 1 - spriteHeight, 0,
-					 -1					, 1 - spriteHeight, 0];
+		const pos = [-1					, 1			   	  ,
+					 -1 + spriteWidth	, 1			      ,
+					 -1 + spriteWidth	, 1 - spriteHeight,
+					 -1					, 1 - spriteHeight];
 
 		this.vertexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer );
@@ -105,7 +105,7 @@ export default class WebGlTest {
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
 		gl.enableVertexAttribArray(this.shaderXYAttrib);
 		gl.vertexAttribPointer(this.shaderXYAttrib,
-							   3, // Component size
+							   2, // Component size
 							   gl.FLOAT, // Type
 							   false, // Normalize
 							   0, // Stride
@@ -179,8 +179,8 @@ export default class WebGlTest {
 		//const shipHit = this.checkCollision();
 		shipSprite.posX += shipSprite.velX;
 		shipSprite.posY += shipSprite.velY;
-		this.offsetArray[0] = ((shipSprite.posX % 824) + 828) % 824 - 28;
-		this.offsetArray[1] = ((shipSprite.posY % 624) + 628) % 624 - 28;
+		this.offsetArray[0] = ((shipSprite.posX % 824) + 824) % 824 - 24;
+		this.offsetArray[1] = ((shipSprite.posY % 624) + 624) % 624 - 24;
 
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.offsetBuffer );
@@ -194,7 +194,7 @@ export default class WebGlTest {
 		gl.uniform1i(this.shaderSamplerU, 0);
 
 		this.ext.drawElementsInstancedANGLE(gl.TRIANGLES,		// Style
-											6, 					// Instance Vert Count
+											6, 					// Instance Index Count
 											gl.UNSIGNED_SHORT,  // Type
 											0, 					// Offset
 											max);				// Number to draw
@@ -205,10 +205,35 @@ export default class WebGlTest {
 		gl.uniform1i(this.shaderSamplerU, 0);
 
 		this.ext.drawElementsInstancedANGLE(gl.TRIANGLES,		// Style
-											6, 					// Instance Vert Count
+											6, 					// Instance Index Count
 											gl.UNSIGNED_SHORT,  // Type
 											0, 					// Offset
 											1);					// Number to draw
+
+		this.checkCollision(max);
+	}
+
+	checkCollision(max) {
+		const shipX = this.offsetArray[0];
+		const shipY = this.offsetArray[1];
+		
+		for (let i = 2; i < max; i+= 2) {
+			const rockX = this.offsetArray[i];
+			const rockY = this.offsetArray[i + 1];
+
+			const dx = shipX - rockX;
+			const dy = shipY - rockY;
+			const diff = Math.sqrt(dx * dx + dy * dy);
+
+			//console.log(diff);
+			//debugger;
+			if (diff <= 12) {
+				console.log(diff);
+				debugger;
+				break;
+				//return true;
+			}
+		}
 	}
 
 	initShaderProgram(gl, vsSource, fsSource) {

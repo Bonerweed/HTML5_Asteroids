@@ -30,7 +30,7 @@ export default class PhaserTest {
     //const phaserElement = new PhaserContainer(div, resourceLocations, sprites, firstMax);
     //this.phaser = phaserElement;
     const phaserConfig = {
-      type: Phaser.AUTO,
+      type: Phaser.CANVAS,
       width: div.offsetWidth,
       height: div.offsetHeight,
       parent: "gameDiv",
@@ -93,15 +93,15 @@ export default class PhaserTest {
     const ship = this.sprites[0];
     //rocks
     for(var i = 1; i < max; i++) {
-			const sprite = this.sprites[i];
+      const sprite = this.sprites[i];
       const rock = this.game.gameElements[i];
 
-			const x = (((sprite.posX + (sprite.velX * frame)) % 824) + 824) % 824 - 24;
-			const y = (((sprite.posY + (sprite.velY * frame)) % 624) + 624) % 624 - 24;
+      const x = (((sprite.posX + (sprite.velX * frame)) % 824) + 824) % 824 - 24;
+      const y = (((sprite.posY + (sprite.velY * frame)) % 624) + 624) % 624 - 24;
 
-			rock.x = x;
+      rock.x = x;
       rock.y = y;
-		}
+    }
 
     //Y position
 		if (inputs.get(83)) {
