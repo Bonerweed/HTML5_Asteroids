@@ -67,7 +67,7 @@ export default class PhaserTest {
     const ship = this.game.thousandSpriteList[0];
     const player = this.physics.add.sprite(ship.posX + 50, ship.posY, "ship");
     this.game.gameElements.push(player);
-    for (let i = 0; i < this.game.firstSpriteMax[0]; i++) {
+    for (let i = 0; i < this.game.firstSpriteMax; i++) {
       const sprite = this.game.thousandSpriteList[i + 101];
       const x = ((sprite.posX % 824) + 824) % 824 - 24;
       const y = ((sprite.posY % 624) + 624) % 624 - 24;
@@ -75,7 +75,7 @@ export default class PhaserTest {
       this.game.gameElements.push(rock);
     }
     //this.add.sprite(ship.posX, ship.posY, 100, "ship");
-    console.log(this.game.gameElements.length);
+    console.log("gameelements:", this.game.gameElements.length);
     //this.physics.add.overlap(rocks, player, setCrashed(true), null, this);
   }
 
@@ -94,6 +94,7 @@ export default class PhaserTest {
     //rocks
     for(var i = 1; i < max; i++) {
       const sprite = this.sprites[i];
+      console.log(i, this.game.gameElements[i])
       const rock = this.game.gameElements[i];
 
       const x = (((sprite.posX + (sprite.velX * frame)) % 824) + 824) % 824 - 24;
@@ -129,7 +130,7 @@ export default class PhaserTest {
 			}
 		}
 
-		const shipHit = this.checkCollision(frame, max);
+		//const shipHit = this.checkCollision(frame, max);
 
 		ship.posX += ship.velX;
 		ship.posY += ship.velY;

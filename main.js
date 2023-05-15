@@ -13,7 +13,7 @@ import Three3DTest from "./engines/three3d.js";
 
 const gameDiv = document.getElementById("gameDiv");
 const debugDiv = document.getElementById("debugDiv");
-
+const perfDiv = document.getElementById("perfDiv")
 const engineSelector = document.createElement("select");
 engineSelector.name = "engines";
 engineSelector.id = "engineSelect";
@@ -52,6 +52,12 @@ label.appendChild(document.createTextNode("Allow failstate"));
 debugDiv.appendChild(checkBox);
 debugDiv.appendChild(label);
 
+const concurrencyAmount = document.createElement("p");
+concurrencyAmount.textContent = "CORES:" + String(window.navigator.hardwareConcurrency);
+const userAgentApprox = document.createElement("p");
+userAgentApprox.textContent = "MEMORY APPROXIMATION:" + "0";
+perfDiv.appendChild(concurrencyAmount);
+perfDiv.appendChild(userAgentApprox);
 
 const perfCnv = document.getElementById("perfCanvas");
 const perfCtx = perfCnv.getContext("2d");
@@ -209,6 +215,7 @@ window.onkeydown = (e) => {
 let gameOver = false;
 
 function update() {
+	concurrencyAmount.textContent ="CORES:" + String(window.navigator.hardwareConcurrency)
 	const now = performance.now();
 	const fps = 1000 / (now - time);
 	time = now;
@@ -225,7 +232,8 @@ function update() {
 	const timeHere = performance.now();
 	gameOver = currentEngine.drawFrame(frame, max, inputhistory[frame]);
 	const timeAfter = performance.now();
-	drawMetrics(frame, fps, test, (timeAfter - timeHere));
+	const frameTime = (timeAfter - timeHere);
+	drawMetrics(frame, fps, test, frameTime);
 
 	if(test[0] == 0) { // Dynamicly increase sprites if in the 0 test.
 		max = Math.min(max + 10, sprites.length);
@@ -238,6 +246,15 @@ function update() {
 		//inputhistory.slice(0, inputhistory.length);
 		drawGrid();
 	}
+	/*if (frame % 10 == 0) {
+		try {
+			let memoryApprox = performance.memory().usedJSHeapSize
+			userAgentApprox.textContent = "MEMORY APPROXIMATION:" + memoryApprox;
+		}
+		catch (error){
+			console.log(error)
+		}
+	}*/
 
 if (!gameOver) {
 	frameRequestId = requestAnimationFrame(update);
@@ -254,7 +271,7 @@ else {
 
 function drawMetrics(frame, fps, test, frameTime) {
 	perfCtx.fillStyle = "White";
-	perfCtx.fillRect(perfCnv.width - 100, 2, 100, 50);
+	perfCtx.fillRect(perfCnv.width - 100, 2, 100, 70);
 
 	perfCtx.fillStyle = "Black";
 	perfCtx.fillText(`NUM : ${max}`, perfCnv.width - 90, 42);
@@ -264,5 +281,6 @@ function drawMetrics(frame, fps, test, frameTime) {
 	perfCtx.fillRect(frame % 1000, Math.max(height - Math.ceil((fps * (height / 100))), 0), 1, 1);
 
 	perfCtx.fillStyle = "PINK";
+	perfCtx.fillText(`FT : ${frameTime} ms`, perfCnv.width - 90, 62);
 	perfCtx.fillRect(frame % 1000, Math.max(height - Math.ceil((frameTime * (height / 100))), 0), 1, 1);
 }

@@ -106,7 +106,7 @@ export default class PixiTest {
 			//debugger;
 			if (diff <= 12) {
 				console.log(diff);
-				debugger;
+				//debugger;
 				break;
 				//return true;
 			}
