@@ -139,6 +139,7 @@ let currentEngine;
 let test;
 let frameRequestId = null;
 let spriteAmount = 0;
+let chosenEngine;
 
 function start() {
 	spriteAmount = Number(document.getElementById("renderAmount").value);
@@ -150,7 +151,7 @@ function start() {
 		currentEngine.destroy();
 	}
 	gameDiv.innerHTML = "";
-	const chosenEngine = document.getElementById("engineSelect").value;
+	chosenEngine = document.getElementById("engineSelect").value;
 	console.log(chosenEngine, spriteAmount);
 	switch(chosenEngine){
 		case ("Canvas2D"):
@@ -200,6 +201,7 @@ function start() {
 	}
 	//currentEngine = new Canvas2DTest(gameDiv, resources, sprites);
 	//const isFailChecked = document.getElementById("failstate").value;
+	concurrencyAmount.textContent ="CORES:" + String(window.navigator.hardwareConcurrency)
 	update();
 }
 const inputhistory = [];
@@ -213,18 +215,12 @@ window.onkeydown = (e) => {
 }
 
 let gameOver = false;
-
-function update() {
-	concurrencyAmount.textContent ="CORES:" + String(window.navigator.hardwareConcurrency)
+async function update() {
 	const now = performance.now();
 	const fps = 1000 / (now - time);
 	time = now;
 	inputhistory.push(new Map(keyChecks));
 	if(frame == 0) { // First frame of a test
-		/*if(testIndex == tests.length) {
-			testIndex = 0;
-			return;
-		}*/
 		drawGrid();
 		test = spriteAmount;
 		max = spriteAmount;
@@ -234,39 +230,16 @@ function update() {
 	const timeAfter = performance.now();
 	const frameTime = (timeAfter - timeHere);
 	drawMetrics(frame, fps, test, frameTime);
-
-	if(test[0] == 0) { // Dynamicly increase sprites if in the 0 test.
+	/*if(test[0] == 0) { // Dynamicly increase sprites if in the 0 test.
 		max = Math.min(max + 10, sprites.length);
-	}
+	}*/
 
 	frame++;
 
 	if(frame % perfCnv.width == 0) { // Reset graph for next test at end.
-		//frame = 0;
-		//inputhistory.slice(0, inputhistory.length);
 		drawGrid();
 	}
-	/*if (frame % 10 == 0) {
-		try {
-			let memoryApprox = performance.memory().usedJSHeapSize
-			userAgentApprox.textContent = "MEMORY APPROXIMATION:" + memoryApprox;
-		}
-		catch (error){
-			console.log(error)
-		}
-	}*/
-
-if (!gameOver) {
 	frameRequestId = requestAnimationFrame(update);
-}
-else {
-	alert("ouch");
-}
-	/*for (let i = 0; i < keyPresses.length; i++) {
-		if (!keyChecks[keyPresses[i]]) {
-			keyPresses.slice(keyPresses.indexOf(e.keyCode), 1);
-		}
-	}*/
 }
 
 function drawMetrics(frame, fps, test, frameTime) {

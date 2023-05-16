@@ -17,7 +17,6 @@ export default class Babylon2dTest {
 				script.src = "./engines/resources/babylon.js";
 				document.body.appendChild(script);
 		});
-
 		await promise;
 		console.log("promise over");
 
@@ -46,9 +45,9 @@ export default class Babylon2dTest {
 		this.ship.height = 24;
 		this.ship.position.set(shipSprite.posX, shipSprite.posY, 0);
 
-		const spriteManagerRock = new BABYLON.SpriteManager("rock", resourceLocations.get("rock"), firstMax[0], {width: 24, height: 24});
+		const spriteManagerRock = new BABYLON.SpriteManager("rock", resourceLocations.get("rock"), firstMax, {width: 24, height: 24});
 
-		for (let i = 0; i < firstMax[0]; i++) {
+		for (let i = 0; i < firstMax; i++) {
 			const sprite = this.rawSprites[i + 1];
 			const x = ((sprite.posX % 824) + 824) % 824 - 24;
 			const y = ((sprite.posY % 624) + 624) % 624 - 24;
@@ -111,8 +110,8 @@ export default class Babylon2dTest {
 
 	checkCollision() {
 		const shipPos = this.ship.position;
-		
-		for (let i = 0; i < this.gameElements.length; i++) {
+
+		/*for (let i = 0; i < this.gameElements.length; i++) {
 			const sprite = this.gameElements[i];
 			const diff = BABYLON.Vector3.Distance(shipPos, sprite.position);
 
@@ -124,8 +123,8 @@ export default class Babylon2dTest {
 				break;
 				//return true;
 			}
-		}
+		}*/
 	}
-	
+
 	destroy() {}
 }
