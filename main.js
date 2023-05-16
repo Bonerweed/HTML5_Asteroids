@@ -214,10 +214,10 @@ window.onkeydown = (e) => {
 	keyChecks.set(e.keyCode, true);
 }
 
-let gameOver = false;
+//let gameOver = false;
 async function update() {
 	const now = performance.now();
-	const fps = 1000 / (now - time);
+	let fps = 1000 / (now - time);
 	time = now;
 	inputhistory.push(new Map(keyChecks));
 	if(frame == 0) { // First frame of a test
@@ -226,7 +226,11 @@ async function update() {
 		max = spriteAmount;
 	}
 	const timeHere = performance.now();
-	gameOver = currentEngine.drawFrame(frame, max, inputhistory[frame]);
+	const returnVal = currentEngine.drawFrame(frame, max, inputhistory[frame]);
+	if (chosenEngine == "P5" && returnVal) {
+		userAgentApprox.textContent = "FPS: " + String(returnVal.rate) + "\tFCOUNT: " + String(returnVal.count);
+		fps = returnVal.rate
+	}
 	const timeAfter = performance.now();
 	const frameTime = (timeAfter - timeHere);
 	drawMetrics(frame, fps, test, frameTime);

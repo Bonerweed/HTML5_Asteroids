@@ -3,6 +3,8 @@ class p5Ship {
     //this.spriteName = image;
     this.x = x;
     this.y = y;
+    this.velX = 0;
+    this.velY = 0;
   }
 }
 
@@ -44,7 +46,6 @@ export default class P5Test {
     const seed = (sketch) => {
       let x = div.offsetWidth;
       let y = div.offsetHeight;
-      console.log(x, y);
       sketch.preload = () => {
         sketch.spaceShip = sketch.loadImage(this.shipImage);
         sketch.spaceRock = sketch.loadImage(this.rockImage);
@@ -52,7 +53,7 @@ export default class P5Test {
       sketch.partList = this.rawSprites;
       sketch.setup = () => {
         sketch.createCanvas(x, y);
-        sketch.noLoop();
+        //sketch.noLoop();
         
       }
       //console.log(sketch.spaceShip, this.rawSprites[0].posX, this.rawSprites[0].posY);
@@ -66,12 +67,18 @@ export default class P5Test {
         sketch.rockList.push(rock);
       };
       sketch.draw = () => {
-        sketch.drawLock = true;
         sketch.background(0);
         sketch.fill(255);
         //sketch.rect(100,100,50,50);
         sketch.image(sketch.spaceShip, sketch.ship.x, sketch.ship.y);
         for (let i = 0; i < sketch.rockList.length; i++) {
+          const rock = sketch.rockList[i];
+          /*if (rock.x >= 824) {
+            debugger;
+          }
+          else if (rock.x <= 0) {
+            debugger;
+          }*/
           sketch.image(sketch.spaceRock, sketch.rockList[i].x, sketch.rockList[i].y);
         }
       }
@@ -80,10 +87,6 @@ export default class P5Test {
     //const shipSprite = this.rawSprites[0];
     });
     await otherPromise;
-    //this.ship = this.p5Instance.game.createSprite(shipSprite.posX, shipSprite.posY, 24, 24);
-    //this.ship = new this.p5Instance.Sprite(shipSprite.posX, shipSprite.posY, 24, 24);
-    //this.ship.addImage(this.p5Instance.game.loadImage(this.shipImage))
-    //check successs here
   };
   drawFrame(frame, max, inputs) {
     if (!this.p5Instance) {
@@ -92,10 +95,21 @@ export default class P5Test {
     }
     for (let i = 0; i < this.p5Instance.rockList.length; i++) {
       const rock = this.p5Instance.rockList[i];
-      rock.x = (((rock.x + (rock.vx * frame)) % 824) + 824) % 824 - 24;
-      rock.y = (((rock.y + (rock.vy * frame)) % 824) + 824) % 824 - 24;
+      /*const movex = (((rock.x + (rock.vx)) % 824) + 824) % 824 - 24;
+      const movey = (((rock.y + (rock.vy)) % 824) + 824) % 824 - 24;*/
+      rock.x += rock.vx;
+      rock.y += rock.vy;
+      if (rock.x >= 824 || rock.x <=-24) {
+        rock.x = rock.vx >0 ? -24 : 824;
+      }
+      if (rock.y >= 624 || rock.y <=-24) {
+        rock.y = rock.vy >0 ? -24 : 624;
+      }
     }
-    this.p5Instance.redraw()
+    this.p5Instance.redraw();
+    const fps = this.p5Instance.frameRate();
+    const fcount = this.p5Instance.frameCount;
+    return{"rate":fps, "count": fcount}
   };
   checkCollision() {};
   destroy() {};

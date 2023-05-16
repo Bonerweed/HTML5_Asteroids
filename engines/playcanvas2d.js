@@ -30,7 +30,7 @@ export default class PlayCanvas2DTest {
     this.rockAsset = new pc.Asset("rock", "texture", {
       url: resourceLocations.get("rock")
     });
-    this.app.assets._assets.push(this.ship);
+    //this.app.assets._assets.push(this.ship);
     console.log(this.app.assets);
     /*this.shipAtlas = new pc.TextureAtlas();
     this.shipAtlas.frames = {
@@ -70,7 +70,7 @@ export default class PlayCanvas2DTest {
         width: 100,
         height: 100,
         type: "image",
-        textureAsset: this.app.assets.ship
+        textureAsset: this.shipAsset
     });
     // Create camera entity
     var camera = new pc.Entity();
