@@ -192,7 +192,7 @@ function start() {
 				break;
 		case ("PlayCanvas (2D)"):
 				console.log("PlayCanvas selected");
-				currentEngine = new PlayCanvas2DTest(gameDiv, resources, sprites);
+				currentEngine = new PlayCanvas2DTest(gameDiv, resources, sprites, spriteAmount);
 				break;
 		case ("PlayCanvas (3D)"):
 				console.log("PlayCanvas3D selected");
