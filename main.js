@@ -140,8 +140,10 @@ let test;
 let frameRequestId = null;
 let spriteAmount = 0;
 let chosenEngine;
+let dataSheet = [];
 
 function start() {
+	dataSheet = ["FRAME,FPS,FRAMETIME"];
 	spriteAmount = Number(document.getElementById("renderAmount").value);
 	if (frameRequestId) {
 			cancelAnimationFrame(frameRequestId);
@@ -233,6 +235,7 @@ async function update() {
 	}
 	const timeAfter = performance.now();
 	const frameTime = (timeAfter - timeHere);
+	dataSheet.push((String(frame+1)+","+String(fps)+","+String(frameTime)));
 	drawMetrics(frame, fps, test, frameTime);
 	/*if(test[0] == 0) { // Dynamicly increase sprites if in the 0 test.
 		max = Math.min(max + 10, sprites.length);
@@ -241,9 +244,13 @@ async function update() {
 	frame++;
 
 	if(frame % perfCnv.width == 0) { // Reset graph for next test at end.
-		drawGrid();
+		//drawGrid();
+		donwloadData();
+		console.log("the end");
 	}
-	frameRequestId = requestAnimationFrame(update);
+	else {
+		frameRequestId = requestAnimationFrame(update);
+	}
 }
 
 function drawMetrics(frame, fps, test, frameTime) {
@@ -260,4 +267,15 @@ function drawMetrics(frame, fps, test, frameTime) {
 	perfCtx.fillStyle = "PINK";
 	perfCtx.fillText(`FT : ${frameTime} ms`, perfCnv.width - 90, 62);
 	perfCtx.fillRect(frame % 1000, Math.max(height - Math.ceil((frameTime * (height / 100))), 0), 1, 1);
+}
+function donwloadData(){
+	const csvData = dataSheet.join("\n");
+	const name = String(currentEngine+".csv");
+	const blob = new Blob([csvData], { type: "text/csv" });
+	const url = window.URL.createObjectURL(blob)
+	const a = document.createElement("a")
+	a.setAttribute("href", url)
+	//a.setAttribute("download", name);
+	a.download = `data.csv`;
+	a.click()
 }
