@@ -1,3 +1,5 @@
+let spriteManagerRock;
+let res;
 export default class Babylon2dTest {
 	constructor(div, resourceLocations, sprites, firstMax) {
 		this.rawSprites = sprites;
@@ -5,6 +7,7 @@ export default class Babylon2dTest {
 		this.gameElements = [];
 
 		this.initBabylon(div, resourceLocations, sprites, firstMax);
+		res = resourceLocations;
 	}
 
 	async initBabylon(div, resourceLocations, sprites, firstMax) {
@@ -45,7 +48,9 @@ export default class Babylon2dTest {
 		this.ship.height = 24;
 		this.ship.position.set(shipSprite.posX, shipSprite.posY, 0);
 
-		const spriteManagerRock = new BABYLON.SpriteManager("rock", resourceLocations.get("rock"), firstMax, {width: 24, height: 24});
+		//change sprite amount stored, figure out during runtime
+		
+		spriteManagerRock = new BABYLON.SpriteManager("rock", resourceLocations.get("rock"), firstMax, {width: 24, height: 24});
 
 		for (let i = 0; i < firstMax; i++) {
 			const sprite = this.rawSprites[i + 1];
@@ -60,9 +65,24 @@ export default class Babylon2dTest {
 		}
 	}
 
-	drawFrame(frame, max, inputs) {
+	drawFrame(frame, max, inputs, rampAmount, collision) {
 		if (!this.ship || this.gameElements.length <= 0) {
 			return;
+		}
+		if (rampAmount > 0 && this.gameElements.length < 1000000) {
+			const additionalSprites = this.gameElements.length + rampAmount > 1000000 ? 1000000 - this.gameElements.length : rampAmount;
+			const existingSprites = this.gameElements.length;
+			for (let i = 0; i < additionalSprites; i++) {
+				const sprite = this.rawSprites[i + 1 + existingSprites];
+				const x = ((sprite.posX % 824) + 824) % 824 - 24;
+				const y = ((sprite.posY % 624) + 624) % 624 - 24;
+				const rock = new BABYLON.Sprite("rock", spriteManagerRock);
+				this.ship.invertV = true;
+				rock.width = 24;
+				rock.height = 24;
+				rock.position.set(sprite.posX, sprite.posY, 0);
+				this.gameElements.push(rock);
+			}
 		}
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const rock = this.gameElements[i];
@@ -71,6 +91,7 @@ export default class Babylon2dTest {
 			const y = (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24;
 			rock.position.set(x, y, 0);
 		}
+		spriteManagerRock.render();
 		const shipSprite = this.rawSprites[0];
 		//Y position
 		if (inputs.get(83)) {
@@ -97,8 +118,9 @@ export default class Babylon2dTest {
 				shipSprite.velX *= 0.99;
 			}
 		}
-
-		const shipHit = this.checkCollision();
+		if (collision) {
+			const shipHit = this.checkCollision();
+		}
 		shipSprite.posX += shipSprite.velX;
 		shipSprite.posY += shipSprite.velY;
 		const x = ((shipSprite.posX % 824) + 828) % 824 - 28;
@@ -111,7 +133,7 @@ export default class Babylon2dTest {
 	checkCollision() {
 		const shipPos = this.ship.position;
 
-		/*for (let i = 0; i < this.gameElements.length; i++) {
+		for (let i = 0; i < this.gameElements.length; i++) {
 			const sprite = this.gameElements[i];
 			const diff = BABYLON.Vector3.Distance(shipPos, sprite.position);
 
@@ -119,11 +141,11 @@ export default class Babylon2dTest {
 			//debugger;
 			if (diff <= 12) {
 				console.log(diff);
-				debugger;
-				break;
+				//debugger;
+				//break;
 				//return true;
 			}
-		}*/
+		}
 	}
 
 	destroy() {}

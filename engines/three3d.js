@@ -1,3 +1,4 @@
+let group;
 export default class Three3dTest {
 	constructor(div, resourceLocations, sprites, firstMax) {
 		this.rawSprites = sprites;
@@ -32,7 +33,7 @@ export default class Three3dTest {
 
 		div.appendChild(this.renderer.domElement);
 
-		const group = new THREE.Group();
+		group = new THREE.Group();
 		group.scale.y = -1; // Flip the y axis because Three's OrthographicCamera bottom is the lower value.
 		group.position.y = div.offsetHeight;
 		this.scene.add(group);
@@ -69,9 +70,24 @@ export default class Three3dTest {
 		}
 	}
 
-	drawFrame(frame, max, inputs) {
+	drawFrame(frame, max, inputs, rampAmount, collision) {
 		if (!this.ship || this.gameElements.length <= 0) {
 			return;
+		}
+		if (rampAmount > 0 && this.gameElements.length < 1000000) {
+			const additionalSprites = this.gameElements.length + rampAmount > 1000000 ? 1000000 - this.gameElements.length : rampAmount;
+			const existingSprites = this.gameElements.length;
+			for (let i = 0; i < additionalSprites; i++) {
+				const sphereGeometry = new THREE.SphereGeometry(12, 32, 16);
+				const sprite = this.rawSprites[i + 1 + existingSprites];
+				const x = ((sprite.posX % 824) + 824) % 824 - 24;
+				const y = ((sprite.posY % 624) + 624) % 624 - 24;
+
+				const rock = new THREE.Mesh(sphereGeometry, new THREE.MeshLambertMaterial({ color: 0x663931 }));
+				rock.position.set(x, y, 0);
+				this.gameElements.push(rock);
+				group.add(rock);
+			}
 		}
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const rock = this.gameElements[i];
@@ -106,8 +122,9 @@ export default class Three3dTest {
 				shipSprite.velX *= 0.99;
 			}
 		}
-
-		const shipHit = this.checkCollision();
+		if (collision) {
+			const shipHit = this.checkCollision();
+		}
 		shipSprite.posX += shipSprite.velX;
 		shipSprite.posY += shipSprite.velY;
 		const x = ((shipSprite.posX % 824) + 828) % 824 - 28;
@@ -128,7 +145,6 @@ export default class Three3dTest {
 			//debugger;
 			if (diff <= 12) {
 				console.log(diff);
-				debugger;
 				break;
 				//return true;
 			}

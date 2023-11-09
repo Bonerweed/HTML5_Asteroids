@@ -17,7 +17,6 @@ class p5Rock {
     this.vy = vy;
   }
 }
-
 export default class P5Test {
   constructor(div, resourceLocations, sprites, firstMax) {
     //this.app = new PIXI.Application();
@@ -43,7 +42,7 @@ export default class P5Test {
     //await apipromise;
     const otherPromise = new Promise((resolve, reject)=>{
       console.log("promise over");
-    const seed = (sketch) => {
+      const seed = (sketch) => {
       let x = div.offsetWidth;
       let y = div.offsetHeight;
       sketch.preload = () => {
@@ -88,11 +87,24 @@ export default class P5Test {
     });
     await otherPromise;
   };
-  drawFrame(frame, max, inputs) {
+  drawFrame(frame, max, inputs, rampAmount, collision) {
     if (!this.p5Instance) {
       console.log("not ready yet");
       return;
     }
+    /*if (rampAmount > 0 && this.p5Instance.rockList.length < 1000000) {
+			const additionalSprites = this.p5Instance.rockList.length + rampAmount > 1000000 ? 1000000 - this.p5Instance.rockList.length : rampAmount;
+			const existingSprites = this.p5Instance.rockList.length;
+			for (let i = 0; i < additionalSprites; i++) {
+				
+        const sprite = this.rawSprites[i+1+existingSprites];
+        const x = ((sprite.posX % 824) + 824) % 824 - 24;
+			  const y = ((sprite.posY % 624) + 624) % 624 - 24;
+        const rock = new p5Rock(x, y, sprite.velX, sprite.velY);
+        this.p5Instance.rockList.push(rock);
+        this.p5Instance.image(p5rockimg, rock.x, rock.y);
+			}
+		}*/
     for (let i = 0; i < this.p5Instance.rockList.length; i++) {
       const rock = this.p5Instance.rockList[i];
       /*const movex = (((rock.x + (rock.vx)) % 824) + 824) % 824 - 24;
@@ -107,10 +119,27 @@ export default class P5Test {
       }
     }
     this.p5Instance.redraw();
+    if (collision) {
+			const shipHit = this.checkCollision();
+		}
     const fps = this.p5Instance.frameRate();
     const fcount = this.p5Instance.frameCount;
     return{"rate":fps, "count": fcount}
   };
-  checkCollision() {};
+  checkCollision() {
+    const ship = this.p5Instance.ship;
+		for (let i = 1; i < this.p5Instance.rockList.length; i++) {
+			const sprite = this.p5Instance.rockList[i];
+			const dx = (ship.x - sprite.x);
+			const dy = (ship.y - sprite.y);
+			const diff = Math.sqrt( (dx * dx) + (dy * dy) );
+			if (diff <= 12) {
+				console.log("pow");
+				//debugger;
+				break;
+				//return true;
+			}
+		}
+  };
   destroy() {};
 }

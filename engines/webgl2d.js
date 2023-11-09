@@ -131,7 +131,7 @@ export default class WebGlTest {
 		this.vaoExt.bindVertexArrayOES(null);
 	}
 
-	drawFrame(frame, max, inputs) {
+	drawFrame(frame, max, inputs, rampAmount, collision) {
 		const gl = this.gl;
 		gl.clear(gl.COLOR_BUFFER_BIT);
 

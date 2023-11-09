@@ -67,12 +67,20 @@ export default class PhaserTest {
     const ship = this.game.thousandSpriteList[0];
     const player = this.physics.add.sprite(ship.posX + 50, ship.posY, "ship");
     this.game.gameElements.push(player);
-    for (let i = 0; i < this.game.firstSpriteMax; i++) {
-      const sprite = this.game.thousandSpriteList[i + 101];
+    this.rockspawn = (spriteList, index) => {
+      const sprite = spriteList[index];
       const x = ((sprite.posX % 824) + 824) % 824 - 24;
       const y = ((sprite.posY % 624) + 624) % 624 - 24;
       const rock = rocks.create(x, y, "rock");
       this.game.gameElements.push(rock);
+    }
+    for (let i = 0; i < this.game.firstSpriteMax; i++) {
+      /*const sprite = this.game.thousandSpriteList[i + 101];
+      const x = ((sprite.posX % 824) + 824) % 824 - 24;
+      const y = ((sprite.posY % 624) + 624) % 624 - 24;
+      const rock = rocks.create(x, y, "rock");
+      this.game.gameElements.push(rock);*/
+      this.rockspawn(this.game.thousandSpriteList, (i + 101));
     }
     //this.add.sprite(ship.posX, ship.posY, 100, "ship");
     console.log("gameelements:", this.game.gameElements.length);

@@ -31,14 +31,17 @@ export default class Canvas2DTest {
 		}
 	}
 
-	drawFrame(frame, max, inputs) {
+	drawFrame(frame, max, inputs, rampAmount, collision) {
 		this.ctx.clearRect(0, 0, this.cnv.width, this.cnv.height);
 
 		const ship = this.sprites[0];
 		let shipPosX = ship.posX;
 		let shipPosY = ship.posY;
-
-		for(var i = 1; i < max; i++) {
+		let totalsprites = max;
+		/*if (rampAmount > 0 && totalsprites < 1000000) {
+			totalsprites += rampAmount;
+		}*/
+		for(var i = 1; i < totalsprites; i++) {
 			const sprite = this.sprites[i];
 			let skin = this.rockImage;
 
@@ -72,15 +75,16 @@ export default class Canvas2DTest {
 				ship.velX *= 0.99;
 			}
 		}
-
-		const shipHit = this.checkCollision(frame, max);
+		if (collision) {
+			const shipHit = this.checkCollision(frame, max);
+		}
 
 		ship.posX += ship.velX;
 		ship.posY += ship.velY;
 		const x = ((ship.posX % 824) + 828) % 824 - 28;
 		const y = ((ship.posY % 624) + 628) % 624 - 28;
 		this.ctx.drawImage(this.shipImage, x, y);
-		return shipHit;
+		return;
 	}
 
 	checkCollision(frame, max) {

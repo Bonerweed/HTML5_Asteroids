@@ -42,15 +42,30 @@ startButton.onclick = start;
 startButton.textContent = "Start";
 debugDiv.appendChild(startButton);
 
+const altStartButton = document.createElement("button");
+altStartButton.onclick = rampItUp;
+altStartButton.textContent = "Ramp";
+debugDiv.appendChild(altStartButton);
+
 const checkBox = document.createElement("input");
 checkBox.type = "checkbox";
 checkBox.id = "failstate";
 const label = document.createElement("label");
 label.htmlFor = "failstate";
-label.appendChild(document.createTextNode("Allow failstate"));
+label.appendChild(document.createTextNode("check collision"));
 
 debugDiv.appendChild(checkBox);
 debugDiv.appendChild(label);
+
+const csvBox = document.createElement("input");
+csvBox.type = "checkbox";
+csvBox.id = "generatecsv";
+const csvlabel = document.createElement("label");
+csvlabel.htmlFor = "generatecsv";
+csvlabel.appendChild(document.createTextNode("Generate .csv"));
+
+debugDiv.appendChild(csvBox);
+debugDiv.appendChild(csvlabel);
 
 const concurrencyAmount = document.createElement("p");
 concurrencyAmount.textContent = "CORES:" + String(window.navigator.hardwareConcurrency);
@@ -141,9 +156,19 @@ let frameRequestId = null;
 let spriteAmount = 0;
 let chosenEngine;
 let dataSheet = [];
+let rampAmount = 0;
+let currentSprites;
+let checkCollision = false;
+
+function rampItUp() {
+	spriteAmount = Number(document.getElementById("renderAmount").value);
+	console.log("we rampin lads");
+	rampAmount = Math.max(1, Math.floor(spriteAmount / 100));
+	console.log(rampAmount);
+	start();
+}
 
 function start() {
-	dataSheet = ["FRAME,FPS,FRAMETIME"];
 	spriteAmount = Number(document.getElementById("renderAmount").value);
 	if (frameRequestId) {
 			cancelAnimationFrame(frameRequestId);
@@ -154,7 +179,8 @@ function start() {
 	}
 	gameDiv.innerHTML = "";
 	chosenEngine = document.getElementById("engineSelect").value;
-	console.log(chosenEngine, spriteAmount);
+	checkCollision = document.getElementById("failstate").checked;
+	console.log(chosenEngine, spriteAmount, document.getElementById("failstate").checked);
 	switch(chosenEngine){
 		case ("Canvas2D"):
 				console.log("Canvas selected");
@@ -200,7 +226,12 @@ function start() {
 				console.log("PlayCanvas3D selected");
 				currentEngine = new PlayCanvas3DTest(gameDiv, resources, sprites, spriteAmount);
 				break;
+		case ("WebGL (3D)"):
+				console.log("webGL3D selected");
+				currentEngine = new PlayCanvas3DTest(gameDiv, resources, sprites, spriteAmount);
+				break;
 	}
+	dataSheet = [chosenEngine, "FRAME,FPS,FRAMETIME"];
 	//currentEngine = new Canvas2DTest(gameDiv, resources, sprites);
 	//const isFailChecked = document.getElementById("failstate").value;
 	concurrencyAmount.textContent ="CORES:" + String(window.navigator.hardwareConcurrency)
@@ -226,16 +257,20 @@ async function update() {
 		drawGrid();
 		test = spriteAmount;
 		max = spriteAmount;
+		currentSprites = spriteAmount;
 	}
 	const timeHere = performance.now();
-	const returnVal = currentEngine.drawFrame(frame, max, inputhistory[frame]);
+	const returnVal = currentEngine.drawFrame(frame, currentSprites, inputhistory[frame], rampAmount, checkCollision);
 	if (chosenEngine == "P5" && returnVal) {
 		userAgentApprox.textContent = "FPS: " + String(returnVal.rate) + "\tFCOUNT: " + String(returnVal.count);
 		fps = returnVal.rate
 	}
 	const timeAfter = performance.now();
 	const frameTime = (timeAfter - timeHere);
-	dataSheet.push((String(frame+1)+","+String(fps)+","+String(frameTime)));
+	if (rampAmount > 0) {
+		currentSprites += rampAmount;
+	}
+	dataSheet.push((String(frame+1)+","+String(fps)+","+String(frameTime)+","+String(currentSprites)));
 	drawMetrics(frame, fps, test, frameTime);
 	/*if(test[0] == 0) { // Dynamicly increase sprites if in the 0 test.
 		max = Math.min(max + 10, sprites.length);
@@ -245,7 +280,9 @@ async function update() {
 
 	if(frame % perfCnv.width == 0) { // Reset graph for next test at end.
 		//drawGrid();
-		donwloadData();
+		if (document.getElementById("generatecsv").checked) {
+			donwloadData();
+		}
 		console.log("the end");
 	}
 	else {
@@ -258,7 +295,7 @@ function drawMetrics(frame, fps, test, frameTime) {
 	perfCtx.fillRect(perfCnv.width - 100, 2, 100, 70);
 
 	perfCtx.fillStyle = "Black";
-	perfCtx.fillText(`NUM : ${max}`, perfCnv.width - 90, 42);
+	perfCtx.fillText(`NUM : ${currentSprites}`, perfCnv.width - 90, 42);
 
 	perfCtx.fillStyle = "GREEN";
 	perfCtx.fillText(`FPS : ${fps.toFixed(0)}`, perfCnv.width - 90, 22);

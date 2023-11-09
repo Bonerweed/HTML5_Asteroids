@@ -49,9 +49,23 @@ export default class PixiTest {
 		}
 	}
 
-	drawFrame(frame, max, inputs) {
+	drawFrame(frame, max, inputs, rampAmount, collision) {
 		if (!this.ship || this.gameElements.length <= 0) {
 			return;
+		}
+		if (rampAmount > 0 && this.gameElements.length < 1000000) {
+			const additionalSprites = this.gameElements.length + rampAmount > 1000000 ? 1000000 - this.gameElements.length : rampAmount;
+			const existingSprites = this.gameElements.length;
+			for (let i = 0; i < additionalSprites; i++) {
+				const sprite = this.rawSprites[i + 1 + existingSprites];
+				const x = ((sprite.posX % 824) + 824) % 824 - 24;
+				const y = ((sprite.posY % 624) + 624) % 624 - 24;
+				const rock = PIXI.Sprite.from(this.rockImage);
+				rock.anchor.set(0.5);
+				rock.position.set(x, y);
+				this.gameElements.push(rock);
+				this.gameContainer.addChild(rock);
+			}
 		}
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const rock = this.gameElements[i];
@@ -87,7 +101,9 @@ export default class PixiTest {
 			}
 		}
 
-		const shipHit = this.checkCollision();
+		if (collision) {
+			const shipHit = this.checkCollision();
+		}
 		shipSprite.posX += shipSprite.velX;
 		shipSprite.posY += shipSprite.velY;
 		const x = ((shipSprite.posX % 824) + 828) % 824 - 28;

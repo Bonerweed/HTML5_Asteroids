@@ -100,11 +100,36 @@ export default class PlayCanvas3DTest {
     this.camera.setPosition(400, 300, 60);
   }
 
-  drawFrame(frame, max, inputs){
+  drawFrame(frame, max, inputs, rampAmount, collision){
     if (!this.app || !this.ship) {
       return false;
     }
     const ship = this.spriteData[0];
+    if (rampAmount > 0 && this.rockList.length < 1000000) {
+			const additionalSprites = this.rockList.length + rampAmount > 1000000 ? 1000000 - this.rockList.length : rampAmount;
+			const existingSprites = this.rockList.length;
+			for (let i = 0; i < additionalSprites; i++) {
+				const sprite = this.spriteData[i + 1 + existingSprites];
+				const x = ((sprite.posX % 824) + 824) % 824 - 24;
+        const y = ((sprite.posY % 624) + 624) % 624 - 24;
+        const rock = new pc.Entity();
+        rock.addComponent('model', {
+            type: "sphere",
+        });
+        rock.addComponent("rigidbody", {
+            type: pc.BODYTYPE_KINEMATIC
+        });
+        rock.addComponent("collision", {
+          type: "sphere"
+        });
+        //rock.addComponent("script");
+        //rock.script.create("trigger");
+        rock.setLocalScale(24,24,24);
+        this.app.root.addChild(rock);
+        rock.setPosition(new pc.Vec3(x,y,0));
+        this.rockList.push(rock);
+			}
+		}
     for (let i = 0; i < this.rockList.length; i++) {
       const rock = this.rockList[i];
       const rockSprite = this.spriteData[i+1];
