@@ -156,15 +156,18 @@ let frameRequestId = null;
 let spriteAmount = 0;
 let chosenEngine;
 let dataSheet = [];
+let rampTarget = 0;
 let rampAmount = 0;
+let rampPacer = 0;
 let currentSprites;
 let checkCollision = false;
 
 function rampItUp() {
 	spriteAmount = Number(document.getElementById("renderAmount").value);
-	console.log("we rampin lads");
-	rampAmount = Math.max(1, Math.floor(spriteAmount / 100));
-	console.log(rampAmount);
+	rampTarget = Number(document.getElementById("rampAmount").value);
+	console.log("we ramping lads");
+	rampAmount = (rampTarget - spriteAmount) / 1000;
+	console.log(rampAmount, rampTarget);
 	start();
 }
 
@@ -259,6 +262,19 @@ async function update() {
 		max = spriteAmount;
 		currentSprites = spriteAmount;
 	}
+	else if (rampTarget > 0 && currentSprites < rampTarget) {
+		console.log(rampPacer);
+		if (rampPacer > 1) {
+			const intPart = String(rampPacer).split(".")[0];
+			const decimalPart= String(rampPacer).split(".")[1];
+			console.log("adding",intPart,"sprites");
+			currentSprites += Number(intPart);
+			rampPacer = Number(decimalPart);
+		}
+		else {
+			rampPacer += rampAmount;
+		}
+	}
 	const timeHere = performance.now();
 	const returnVal = currentEngine.drawFrame(frame, currentSprites, inputhistory[frame], rampAmount, checkCollision);
 	if (chosenEngine == "P5" && returnVal) {
@@ -267,9 +283,6 @@ async function update() {
 	}
 	const timeAfter = performance.now();
 	const frameTime = (timeAfter - timeHere);
-	if (rampAmount > 0) {
-		currentSprites += rampAmount;
-	}
 	dataSheet.push((String(frame+1)+","+String(fps)+","+String(frameTime)+","+String(currentSprites)));
 	drawMetrics(frame, fps, test, frameTime);
 	/*if(test[0] == 0) { // Dynamicly increase sprites if in the 0 test.
