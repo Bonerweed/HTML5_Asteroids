@@ -229,7 +229,7 @@ export default class WebGlTest {
 			//debugger;
 			if (diff <= 12) {
 				console.log(diff);
-				debugger;
+				//debugger;
 				break;
 				//return true;
 			}
