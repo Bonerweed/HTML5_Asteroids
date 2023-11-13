@@ -1,16 +1,16 @@
 let spriteManagerRock;
 let res;
 export default class Babylon2dTest {
-	constructor(div, resourceLocations, sprites, firstMax) {
+	constructor(div, resourceLocations, sprites, startSpriteCount, limitSpriteCount) {
 		this.rawSprites = sprites;
 
 		this.gameElements = [];
 
-		this.initBabylon(div, resourceLocations, sprites, firstMax);
+		this.initBabylon(div, resourceLocations, sprites, startSpriteCount, limitSpriteCount);
 		res = resourceLocations;
 	}
 
-	async initBabylon(div, resourceLocations, sprites, firstMax) {
+	async initBabylon(div, resourceLocations, sprites, startSpriteCount, limitSpriteCount) {
 		console.log("starting promise");
 		const promise = new Promise((resolve, reject) => {
 				const script = document.createElement("script");
@@ -31,6 +31,8 @@ export default class Babylon2dTest {
 		const engine = new BABYLON.Engine(cnv, true);
 		this.scene = new BABYLON.Scene(engine);
 
+		this.scene.clearColor = BABYLON.Color3.FromHexString("#1e1f1c");
+
 		const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -1), this.scene);
 		camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 		camera.orthoLeft = 0;
@@ -50,40 +52,39 @@ export default class Babylon2dTest {
 
 		//change sprite amount stored, figure out during runtime
 		
-		spriteManagerRock = new BABYLON.SpriteManager("rock", resourceLocations.get("rock"), firstMax, {width: 24, height: 24});
+		spriteManagerRock = new BABYLON.SpriteManager("rock", resourceLocations.get("rock"), (startSpriteCount == limitSpriteCount) ? startSpriteCount : sprites.length, {width: 24, height: 24});
 
-		for (let i = 0; i < firstMax; i++) {
+		for (let i = 0; i < startSpriteCount; i++) {
 			const sprite = this.rawSprites[i + 1];
 			const x = ((sprite.posX % 824) + 824) % 824 - 24;
 			const y = ((sprite.posY % 624) + 624) % 624 - 24;
 			const rock = new BABYLON.Sprite("rock", spriteManagerRock);
-			this.ship.invertV = true; // As we draw the orthographic camera from 0 -> Height our sprites are reversed.
+			rock.invertV = true; // As we draw the orthographic camera from 0 -> Height our sprites are reversed.
 			rock.width = 24;
 			rock.height = 24;
-			rock.position.set(sprite.posX, sprite.posY, 0);
+			rock.position.set(x, y, 0);
 			this.gameElements.push(rock);
 		}
 	}
 
-	drawFrame(frame, max, inputs, rampAmount, collision) {
+	drawFrame(frame, frameSpriteCount, inputs, collision) {
 		if (!this.ship || this.gameElements.length <= 0) {
 			return;
 		}
-		if (rampAmount > 0 && this.gameElements.length < 1000000) {
-			const additionalSprites = this.gameElements.length + rampAmount > 1000000 ? 1000000 - this.gameElements.length : rampAmount;
-			const existingSprites = this.gameElements.length;
-			for (let i = 0; i < additionalSprites; i++) {
-				const sprite = this.rawSprites[i + 1 + existingSprites];
-				const x = ((sprite.posX % 824) + 824) % 824 - 24;
-				const y = ((sprite.posY % 624) + 624) % 624 - 24;
-				const rock = new BABYLON.Sprite("rock", spriteManagerRock);
-				this.ship.invertV = true;
-				rock.width = 24;
-				rock.height = 24;
-				rock.position.set(sprite.posX, sprite.posY, 0);
-				this.gameElements.push(rock);
-			}
+
+
+		while(this.gameElements.length - 1 < frameSpriteCount) {
+			const sprite = this.rawSprites[this.gameElements.length + 1];
+			const rock = new BABYLON.Sprite("rock", spriteManagerRock);
+			rock.invertV = true;
+			rock.width = 24;
+			rock.height = 24;
+			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
+			                  ((sprite.posY % 624) + 624) % 624 - 24,
+							  0);
+			this.gameElements.push(rock);
 		}
+
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const rock = this.gameElements[i];
 			const rockSprite = this.rawSprites[i + 1];
@@ -91,6 +92,7 @@ export default class Babylon2dTest {
 			const y = (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24;
 			rock.position.set(x, y, 0);
 		}
+
 		spriteManagerRock.render();
 		const shipSprite = this.rawSprites[0];
 		//Y position

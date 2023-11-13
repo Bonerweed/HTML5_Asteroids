@@ -1,7 +1,7 @@
 let rockMaterial;
 let group;
 export default class Three2dTest {
-	constructor(div, resourceLocations, sprites, firstMax) {
+	constructor(div, resourceLocations, sprites, firstMax, limitSpriteCount) {
 		this.rawSprites = sprites;
 
 		this.gameElements = [];
@@ -24,6 +24,8 @@ export default class Three2dTest {
 		console.log("promise over");
 
 		this.scene = new THREE.Scene();
+
+		this.scene.background = new THREE.Color(0x1E1F1C);
 
 		this.camera = new THREE.OrthographicCamera(0, div.offsetWidth, div.offsetHeight, 0, 0, 1);
 		this.scene.add(this.camera);
@@ -62,24 +64,22 @@ export default class Three2dTest {
 		}
 	}
 
-	drawFrame(frame, max, inputs, rampAmount, collision) {
+	drawFrame(frame, frameSpriteCount, inputs, collision) {
 		if (!this.ship || this.gameElements.length <= 0) {
 			return;
 		}
-		if (rampAmount > 0 && this.gameElements.length < 1000000) {
-			const additionalSprites = this.gameElements.length + rampAmount > 1000000 ? 1000000 - this.gameElements.length : rampAmount;
-			const existingSprites = this.gameElements.length;
-			for (let i = 0; i < additionalSprites; i++) {
-				const sprite = this.rawSprites[i + 1 + existingSprites];
-				const x = ((sprite.posX % 824) + 824) % 824 - 24;
-				const y = ((sprite.posY % 624) + 624) % 624 - 24;
-				const rock = new THREE.Sprite(rockMaterial);
-				rock.scale.set(24, 24, 1);
-				rock.position.set(x, y, 0);
-				this.gameElements.push(rock);
-				group.add(rock);
-			}
+
+		while(this.gameElements.length - 1 < frameSpriteCount) {
+			const sprite = this.rawSprites[this.gameElements.length + 1];
+			const rock = new THREE.Sprite(rockMaterial);
+			rock.scale.set(24, 24, 1);
+			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
+			                  ((sprite.posY % 624) + 624) % 624 - 24,
+							  0);
+			this.gameElements.push(rock);
+			group.add(rock);
 		}
+
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const rock = this.gameElements[i];
 			const rockSprite = this.rawSprites[i + 1];

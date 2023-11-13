@@ -1,5 +1,5 @@
 export default class PlayCanvas2DTest {
-  constructor(div, resourceLocations, sprites, firstMax){
+  constructor(div, resourceLocations, sprites, firstMax, limitSpriteCount){
     this.cnv = document.createElement('canvas');
 		this.cnv.width  = div.offsetWidth;
 		this.cnv.height = div.offsetHeight;
@@ -120,7 +120,7 @@ export default class PlayCanvas2DTest {
     // Create camera entity
     let camera = new pc.Entity("camera");
     camera.addComponent('camera', {
-      clearColor: new pc.Color(0.1, 0.2, 0.3)
+      clearColor: new pc.Color(0.1, 0.2, 0.3).fromString("#1e1f1c")
     });
     let cube = new pc.Entity("cube");
       cube.addComponent('model', {
@@ -163,13 +163,26 @@ export default class PlayCanvas2DTest {
     console.log("screenEntity: ", this.screenEntity);
     
   }
-  drawFrame(frame, max, inputs, rampAmount, collision){
+  drawFrame(frame, frameSpriteCount, inputs, collision){
     if (!this.app || !this.ship) {
       return false;
     }
 
-    const ship = this.spriteData[0];
-    if (rampAmount > 0 && this.rockList.length < 1000000) {
+    while(this.rockList.length < frameSpriteCount) {
+			const sprite = this.spriteData[this.rockList.length + 1];
+      const x = ((sprite.posX % 824) + 824) % 824 - 24;
+      const y = ((sprite.posY % 624) + 624) % 624 - 24;
+      const rock = new pc.Entity();
+      rock.addComponent("element", {
+        type: "image",
+        textureAsset: this.app.assets._assets[1].id,
+      });
+      this.screenEntity.addChild(rock);
+      rock.setLocalPosition(new pc.Vec3(x,y,0));
+      this.rockList.push(rock);
+    }
+
+    /*if (rampAmount > 0 && this.rockList.length < 1000000) {
 			const additionalSprites = this.rockList.length + rampAmount > 1000000 ? 1000000 - this.rockList.length : rampAmount;
 			const existingSprites = this.rockList.length;
 			for (let i = 0; i < additionalSprites; i++) {
@@ -186,7 +199,7 @@ export default class PlayCanvas2DTest {
         rock.setLocalPosition(new pc.Vec3(x,y,0));
         this.rockList.push(rock);
 			}
-		}
+		}*/
 
     for (let i = 0; i < this.rockList.length; i++) {
       const rock = this.rockList[i];
@@ -195,6 +208,8 @@ export default class PlayCanvas2DTest {
 			const y = (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24;
       rock.setLocalPosition(new pc.Vec3(x,y,0));
     }
+
+    const ship = this.spriteData[0];
 
     if (inputs.get(83)) {
       ship.velY -= 0.01;
@@ -225,11 +240,31 @@ export default class PlayCanvas2DTest {
     ship.posY += ship.velY;
     const x = ((ship.posX % 824) + 828) % 824 - 28;
     const y = ((ship.posY % 624) + 628) % 624 - 28;
-    console.log(x, y);
+    //console.log(x, y);
     this.ship.setLocalPosition(new pc.Vec3(x,y,0));
+    if (collision) {
+      this.checkCollision();
+    }
     
     //ship.translate(0.1,0,0);
   } 
-  checkCollision(){}
+  checkCollision(){
+    const shipPos = this.ship.getPosition();
+		for (let i = 0; i < this.rockList.length; i++) {
+			const sprite = this.rockList[i].getPosition();
+      console.log(shipPos.x, shipPos.y, sprite.x, sprite.y);
+			const dx = (shipPos.x - sprite.x);
+			const dy = (shipPos.y - sprite.y);
+			const diff = Math.sqrt( (dx * dx) + (dy * dy) );
+      console.log(dx, dy, diff);
+			debugger;
+			if (diff <= 12) {
+				console.log("pow");
+				//debugger;
+				break;
+				//return true;
+			}
+		}
+  }
   destroy(){}
 }

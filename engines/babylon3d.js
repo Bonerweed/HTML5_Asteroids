@@ -29,7 +29,7 @@ export default class Babylon3DTest {
 
 		const engine = new BABYLON.Engine(cnv, true);
 		this.scene = new BABYLON.Scene(engine);
-		this.scene.clearColor = BABYLON.Color3.Black();
+		this.scene.clearColor = BABYLON.Color3.FromHexString("#1e1f1c");
 		this.scene.ambientColor = new BABYLON.Color3.FromHexString("#404040");
 
 		const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -128), this.scene);
@@ -60,10 +60,10 @@ export default class Babylon3DTest {
 		shipMat.specularColor = new BABYLON.Color3(0, 0, 0);
 		this.ship.material = shipMat;
 
-		const rockMat = new BABYLON.StandardMaterial("redMat");
-		rockMat.diffuseColor = new BABYLON.Color3.FromHexString("#663931");
-		rockMat.ambientColor = new BABYLON.Color3.FromHexString("#663931");
-		rockMat.specularColor = new BABYLON.Color3(0, 0, 0);
+		this.rockMat = new BABYLON.StandardMaterial("redMat");
+		this.rockMat.diffuseColor = new BABYLON.Color3.FromHexString("#663931");
+		this.rockMat.ambientColor = new BABYLON.Color3.FromHexString("#663931");
+		this.rockMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
 		for (let i = 0; i < firstMax; i++) {
 			const sprite = this.rawSprites[i + 1];
@@ -71,34 +71,28 @@ export default class Babylon3DTest {
 			const y = ((sprite.posY % 624) + 624) % 624 - 24;
 			const rock = BABYLON.MeshBuilder.CreateSphere("sphere", {diameterX: 24, diameterY: 24, diameterZ: 24});
 			rock.position.set(sprite.posX, sprite.posY, 0);
-			rock.material = rockMat;
+			rock.material = this.rockMat;
 			rock.parent = transformNode;
 			this.gameElements.push(rock);
 		}
 	}
 
-	drawFrame(frame, max, inputs, rampAmount, collision) {
+	drawFrame(frame, frameSpriteCount, inputs, collision) {
 		if (!this.ship || this.gameElements.length <= 0) {
 			return;
 		}
-		if (rampAmount > 0 && this.gameElements.length < 1000000) {
-			const additionalSprites = this.gameElements.length + rampAmount > 1000000 ? 1000000 - this.gameElements.length : rampAmount;
-			const existingSprites = this.gameElements.length;
-			for (let i = 0; i < additionalSprites; i++) {
-				const sprite = this.rawSprites[i + 1 + existingSprites];
-				const rockMat = new BABYLON.StandardMaterial("redMat");
-				rockMat.diffuseColor = new BABYLON.Color3.FromHexString("#663931");
-				rockMat.ambientColor = new BABYLON.Color3.FromHexString("#663931");
-				rockMat.specularColor = new BABYLON.Color3(0, 0, 0);
-				const x = ((sprite.posX % 824) + 824) % 824 - 24;
-				const y = ((sprite.posY % 624) + 624) % 624 - 24;
-				const rock = BABYLON.MeshBuilder.CreateSphere("sphere", {diameterX: 24, diameterY: 24, diameterZ: 24});
-				rock.position.set(sprite.posX, sprite.posY, 0);
-				rock.material = rockMat;
-				rock.parent = transformNode;
-				this.gameElements.push(rock);
-			}
+
+		while(this.gameElements.length - 1 < frameSpriteCount) {
+			const sprite = this.rawSprites[this.gameElements.length + 1];
+			const rock = BABYLON.MeshBuilder.CreateSphere("sphere", {diameterX: 24, diameterY: 24, diameterZ: 24});
+			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
+			                  ((sprite.posY % 624) + 624) % 624 - 24,
+							  0);
+			rock.material = this.rockMat;
+			rock.parent = transformNode;
+			this.gameElements.push(rock);
 		}
+
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const rock = this.gameElements[i];
 			const rockSprite = this.rawSprites[i + 1];

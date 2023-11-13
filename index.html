@@ -4,49 +4,42 @@
     <meta charset="utf-8">
     <title>Cool Asteroids Test Tool</title>
     <style>
-			body {
-				background: #272822;
-				color: #F1F8F2;
-				font-family: 'Courier New', monospace;
-			}
-			canvas, div {
-				background: #1E1F1C;
-			}
-			#gameDiv {
-				width:800px;
-				height: 600px;
-				display: inline-block;
-			}
-		</style>
+            body {
+                background: #272822;
+                color: #F1F8F2;
+                font-family: 'Courier New', monospace;
+            }
+            canvas, div {
+                background: #1E1F1C;
+            }
+            #gameDiv {
+                width:800px;
+                height: 600px;
+                display: inline-block;
+            }
+        </style>
   </head>
   <body>
-	<script type = "module" src="main.js" defer></script>
+    <script type = "module" src="main.js" defer></script>
     <div id="gameDiv">
       <!-- gameCanvas will be generated here through code-->
     </div>
-		<canvas id="perfCanvas" width="1000" height="600"></canvas>
-		<br>
-    <label for="renderAmount">
-      	Initial Sprites
-    </label>
-    </br>
-    <input type = text id="renderAmount" value = 10>
+        <canvas id="perfCanvas" width="1000" height="600"></canvas>
+        <br>
+    <label> Sprite Ramp : </label>
+    <input type="number" id="startSpriteInput" value="10" min="0" max="1000000"></input>
+    <label> to </label>
+    <input type="number" id="endSpriteInput" value="10" min="0" max="1000000">
     </input>
-	</br>
-	<label for="rampAmount">
-		Ramp Target
-	</label>
-	</br>
-	<input type = text id="rampAmount" value = 0>
-	</input>
-		<!--<p style="color:green;">TEST 1 : 1000  Sprites</p>
-		<p style="color:orange">TEST 2 : 5000  Sprites</p>
-		<p style="color:red">TEST 3 : 10000 Sprites</p>
-		<p style="color:cyan">TEST 4 : +1 Per frame</p>-->
-		<!--<button onclick="start()">Start Testing</button>-->
+        <!--<p style="color:green;">TEST 1 : 1000  Sprites</p>
+        <p style="color:orange">TEST 2 : 5000  Sprites</p>
+        <p style="color:red">TEST 3 : 10000 Sprites</p>
+        <p style="color:cyan">TEST 4 : +1 Per frame</p>-->
+        <!--<button onclick="start()">Start Testing</button>-->
     <div id="debugDiv">
+        <button type="button" id="startButton">Start!</button>
     </div>
-	<div id="perfDiv">
+    <div id="perfDiv">
     </div>
   </body>
 </html>

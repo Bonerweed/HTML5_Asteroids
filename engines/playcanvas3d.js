@@ -1,5 +1,5 @@
 export default class PlayCanvas3DTest {
-  constructor(div, resourceLocations, sprites, firstMax){
+  constructor(div, resourceLocations, sprites, firstMax, limitSpriteCount) {
     this.cnv = document.createElement('canvas');
 		this.cnv.width  = div.offsetWidth;
 		this.cnv.height = div.offsetHeight;
@@ -29,7 +29,7 @@ export default class PlayCanvas3DTest {
 
     this.camera = new pc.Entity();
     this.camera.addComponent('camera', {
-      clearColor: new pc.Color(0.1, 0.2, 0.3),
+      clearColor: new pc.Color(0.1, 0.2, 0.3).fromString("#1e1f1c"),
       projection: pc.PROJECTION_ORTHOGRAPHIC,
       orthoHeight: 300
     });
@@ -98,38 +98,36 @@ export default class PlayCanvas3DTest {
     this.app.root.addChild(this.camera);
     this.app.root.addChild(this.light);
     this.camera.setPosition(400, 300, 60);
+    console.log(this.ship);
   }
 
-  drawFrame(frame, max, inputs, rampAmount, collision){
+  drawFrame(frame, frameSpriteCount, inputs, collision){
     if (!this.app || !this.ship) {
       return false;
     }
-    const ship = this.spriteData[0];
-    if (rampAmount > 0 && this.rockList.length < 1000000) {
-			const additionalSprites = this.rockList.length + rampAmount > 1000000 ? 1000000 - this.rockList.length : rampAmount;
-			const existingSprites = this.rockList.length;
-			for (let i = 0; i < additionalSprites; i++) {
-				const sprite = this.spriteData[i + 1 + existingSprites];
-				const x = ((sprite.posX % 824) + 824) % 824 - 24;
-        const y = ((sprite.posY % 624) + 624) % 624 - 24;
-        const rock = new pc.Entity();
-        rock.addComponent('model', {
-            type: "sphere",
-        });
-        rock.addComponent("rigidbody", {
-            type: pc.BODYTYPE_KINEMATIC
-        });
-        rock.addComponent("collision", {
-          type: "sphere"
-        });
-        //rock.addComponent("script");
-        //rock.script.create("trigger");
-        rock.setLocalScale(24,24,24);
-        this.app.root.addChild(rock);
-        rock.setPosition(new pc.Vec3(x,y,0));
-        this.rockList.push(rock);
-			}
-		}
+
+    while(this.rockList.length < frameSpriteCount) {
+      const sprite = this.spriteData[this.rockList.length + 1];
+      const x = ((sprite.posX % 824) + 824) % 824 - 24;
+      const y = ((sprite.posY % 624) + 624) % 624 - 24;
+      const rock = new pc.Entity();
+      rock.addComponent('model', {
+          type: "sphere",
+      });
+      rock.addComponent("rigidbody", {
+          type: pc.BODYTYPE_KINEMATIC
+      });
+      rock.addComponent("collision", {
+        type: "sphere"
+      });
+      //rock.addComponent("script");
+      //rock.script.create("trigger");
+      rock.setLocalScale(24,24,24);
+      this.app.root.addChild(rock);
+      rock.setPosition(new pc.Vec3(x,y,0));
+      this.rockList.push(rock);
+    }
+
     for (let i = 0; i < this.rockList.length; i++) {
       const rock = this.rockList[i];
       const rockSprite = this.spriteData[i+1];
@@ -137,6 +135,9 @@ export default class PlayCanvas3DTest {
 			const y = (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24;
       rock.setPosition(new pc.Vec3(x,y,0));
     }
+
+    const ship = this.spriteData[0];
+
     //Y position
     if (inputs.get(83)) {
       ship.velY -= 0.01;
@@ -168,8 +169,26 @@ export default class PlayCanvas3DTest {
     const y = ((ship.posY % 624) + 628) % 624 - 28;
     //console.log(this.ship.getPosition());
     this.ship.setPosition(new pc.Vec3(x,y,0));
+    if (collision) {
+      this.checkCollision();
+    }
 
   }
-  checkCollision(){}
+  checkCollision(){
+    const shipPos = this.ship.getPosition();
+		for (let i = 0; i < this.rockList.length; i++) {
+			const sprite = this.rockList[i].getPosition();
+			const dx = (shipPos.x - sprite.x);
+			const dy = (shipPos.y - sprite.y);
+			const diff = Math.sqrt( (dx * dx) + (dy * dy) );
+			//debugger;
+			if (diff <= 12) {
+				console.log("pow");
+				//debugger;
+				break;
+				//return true;
+			}
+		}
+  }
   destroy(){}
 }

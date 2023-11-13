@@ -18,7 +18,7 @@ class p5Rock {
   }
 }
 export default class P5Test {
-  constructor(div, resourceLocations, sprites, firstMax) {
+  constructor(div, resourceLocations, sprites, firstMax, limitSpriteCount) {
     //this.app = new PIXI.Application();
     //div.appendChild(this.app.view);
     this.rawSprites = sprites;
@@ -66,7 +66,7 @@ export default class P5Test {
         sketch.rockList.push(rock);
       };
       sketch.draw = () => {
-        sketch.background(0);
+        sketch.background("#1e1f1c");
         sketch.fill(255);
         //sketch.rect(100,100,50,50);
         sketch.image(sketch.spaceShip, sketch.ship.x, sketch.ship.y);
@@ -87,24 +87,21 @@ export default class P5Test {
     });
     await otherPromise;
   };
-  drawFrame(frame, max, inputs, rampAmount, collision) {
+  drawFrame(frame, frameSpriteCount, inputs, collision) {
     if (!this.p5Instance) {
       console.log("not ready yet");
       return;
     }
-    /*if (rampAmount > 0 && this.p5Instance.rockList.length < 1000000) {
-			const additionalSprites = this.p5Instance.rockList.length + rampAmount > 1000000 ? 1000000 - this.p5Instance.rockList.length : rampAmount;
-			const existingSprites = this.p5Instance.rockList.length;
-			for (let i = 0; i < additionalSprites; i++) {
-				
-        const sprite = this.rawSprites[i+1+existingSprites];
-        const x = ((sprite.posX % 824) + 824) % 824 - 24;
-			  const y = ((sprite.posY % 624) + 624) % 624 - 24;
-        const rock = new p5Rock(x, y, sprite.velX, sprite.velY);
-        this.p5Instance.rockList.push(rock);
-        this.p5Instance.image(p5rockimg, rock.x, rock.y);
-			}
-		}*/
+
+    while(this.p5Instance.rockList.length - 1 < frameSpriteCount) {
+			const sprite = this.rawSprites[this.p5Instance.rockList.length];
+
+      const x = ((sprite.posX % 824) + 824) % 824 - 24;
+      const y = ((sprite.posY % 624) + 624) % 624 - 24;
+      const rock = new p5Rock(x, y, sprite.velX, sprite.velY);
+      this.p5Instance.rockList.push(rock);
+    }
+
     for (let i = 0; i < this.p5Instance.rockList.length; i++) {
       const rock = this.p5Instance.rockList[i];
       /*const movex = (((rock.x + (rock.vx)) % 824) + 824) % 824 - 24;
@@ -122,9 +119,9 @@ export default class P5Test {
     if (collision) {
 			const shipHit = this.checkCollision();
 		}
-    const fps = this.p5Instance.frameRate();
-    const fcount = this.p5Instance.frameCount;
-    return{"rate":fps, "count": fcount}
+    //const fps = this.p5Instance.frameRate();
+    //const fcount = this.p5Instance.frameCount;
+    //return{"rate":fps, "count": fcount}
   };
   checkCollision() {
     const ship = this.p5Instance.ship;

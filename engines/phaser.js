@@ -7,7 +7,7 @@ function setCrashed(val) {
 }
 let spawner;
 export default class PhaserTest {
-  constructor(div, resourceLocations, sprites, firstMax) {
+  constructor(div, resourceLocations, sprites, firstMax, limitSpriteCount) {
     this.sprites = sprites;
     this.crashed = false;
     this.phaser;
@@ -31,6 +31,7 @@ export default class PhaserTest {
     //this.phaser = phaserElement;
     const phaserConfig = {
       type: Phaser.CANVAS,
+      backgroundColor: '#1e1f1c',
       width: div.offsetWidth,
       height: div.offsetHeight,
       parent: "gameDiv",
@@ -80,7 +81,7 @@ export default class PhaserTest {
       const y = ((sprite.posY % 624) + 624) % 624 - 24;
       const rock = rocks.create(x, y, "rock");
       this.game.gameElements.push(rock);*/
-      spawner(this.game.thousandSpriteList, (i + 101));
+      spawner(this.game.thousandSpriteList, this.game.gameElements.length);
     }
     //this.add.sprite(ship.posX, ship.posY, 100, "ship");
     console.log("gameelements:", this.game.gameElements.length);
@@ -91,22 +92,19 @@ export default class PhaserTest {
   {
   }
 
-  drawFrame(frame, max, inputs, rampAmount, collision) {
+  drawFrame(frame, frameSpriteCount, inputs, collision) {
     if (!this.game || !this.game.gameElements[0]) {
       return false;
     }
     //console.log("draw frame");
     //console.log(this.game, this.game.physics);
 
-    const ship = this.sprites[0];
-    if (rampAmount > 0 && this.game.gameElements.length < 1000000) {
-			const additionalSprites = this.game.gameElements.length + rampAmount > 1000000 ? 1000000 - this.game.gameElements.length : rampAmount;
-			const existingSprites = this.game.gameElements.length;
-			for (let i = 0; i < additionalSprites; i++) {
-				spawner(this.game.thousandSpriteList, (i + 101 + existingSprites));
-			}
-		}
-    //rocks
+    while(this.game.gameElements.length - 1 < frameSpriteCount) {
+      spawner(this.game.thousandSpriteList, (this.game.gameElements.length));
+    }
+    
+    //Rocks
+
     for(var i = 1; i < this.game.gameElements.length; i++) {
       const sprite = this.sprites[i];
       const rock = this.game.gameElements[i];
@@ -118,14 +116,15 @@ export default class PhaserTest {
       rock.y = y;
     }
 
+    // Ship
+    const ship = this.sprites[0];
+
     //Y position
 		if (inputs.get(83)) {
 			ship.velY += 0.01;
-		}
-		else if (inputs.get(87)) {
+		}	else if (inputs.get(87)) {
 			ship.velY -= 0.01;
-		}
-		else {
+		}	else {
 			if (ship.velY != 0) {
 				ship.velY *= 0.99;
 			}
@@ -134,11 +133,9 @@ export default class PhaserTest {
 		//X position
 		if (inputs.get(68)) {
 			ship.velX += 0.01;
-		}
-		else if (inputs.get(65)) {
+		}	else if (inputs.get(65)) {
 			ship.velX -= 0.01;
-		}
-		else {
+		}	else {
 			if (ship.velX != 0) {
 				ship.velX *= 0.99;
 			}

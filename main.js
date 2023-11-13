@@ -1,4 +1,5 @@
-/*do imports here*/
+"use strict";
+
 import Canvas2DTest from "./engines/canvas2d.js";
 import WebGlTest from "./engines/webgl2d.js"
 import PhaserTest from "./engines/phaser.js";
@@ -14,65 +15,63 @@ import Three3DTest from "./engines/three3d.js";
 const gameDiv = document.getElementById("gameDiv");
 const debugDiv = document.getElementById("debugDiv");
 const perfDiv = document.getElementById("perfDiv")
+
 const engineSelector = document.createElement("select");
 engineSelector.name = "engines";
 engineSelector.id = "engineSelect";
+
 const engines = ["Canvas2D",
-"Phaser",
-"Pixi",
-"P5",
-"WebGL (2D)",
-"Three (2D)",
-"Three (3D)",
-"Babylon (2D)",
-"Babylon (3D)",
-"PlayCanvas (2D)",
-"PlayCanvas (3D)"
-];
+				 "Phaser",
+				 "Pixi",
+				 "P5",
+				 "WebGL (2D)",
+				 "Three (2D)",
+				 "Three (3D)",
+				 "Babylon (2D)",
+				 "Babylon (3D)",
+				 "PlayCanvas (2D)",
+				 "PlayCanvas (3D)"];
+
 for (let i = 0; i < engines.length; i++) {
 	const option = document.createElement("option");
 	option.value = engines[i];
 	option.text = engines[i];
 	engineSelector.appendChild(option);
 }
+
 debugDiv.appendChild(engineSelector);
 
-const startButton = document.createElement("button");
-startButton.onclick = start;
-startButton.textContent = "Start";
-debugDiv.appendChild(startButton);
+document.getElementById("startButton").onclick = start;
 
-const altStartButton = document.createElement("button");
-altStartButton.onclick = rampItUp;
-altStartButton.textContent = "Ramp";
-debugDiv.appendChild(altStartButton);
+const collisionCheckBox = document.createElement("input");
+collisionCheckBox.type = "checkbox";
+collisionCheckBox.id = "failstate";
 
-const checkBox = document.createElement("input");
-checkBox.type = "checkbox";
-checkBox.id = "failstate";
-const label = document.createElement("label");
-label.htmlFor = "failstate";
-label.appendChild(document.createTextNode("check collision"));
+const collisionCheckBoxLabel = document.createElement("label");
+collisionCheckBoxLabel.htmlFor = "failstate";
+collisionCheckBoxLabel.appendChild(document.createTextNode("Collision"));
 
-debugDiv.appendChild(checkBox);
-debugDiv.appendChild(label);
+debugDiv.appendChild(collisionCheckBox);
+debugDiv.appendChild(collisionCheckBoxLabel);
 
 const csvBox = document.createElement("input");
 csvBox.type = "checkbox";
 csvBox.id = "generatecsv";
 const csvlabel = document.createElement("label");
 csvlabel.htmlFor = "generatecsv";
-csvlabel.appendChild(document.createTextNode("Generate .csv"));
+csvlabel.appendChild(document.createTextNode("Generate CSV"));
 
 debugDiv.appendChild(csvBox);
 debugDiv.appendChild(csvlabel);
 
 const concurrencyAmount = document.createElement("p");
-concurrencyAmount.textContent = "CORES:" + String(window.navigator.hardwareConcurrency);
-const userAgentApprox = document.createElement("p");
-userAgentApprox.textContent = "MEMORY APPROXIMATION:" + "0";
+concurrencyAmount.textContent = `CORES: ${window.navigator.hardwareConcurrency}`
+
+/*const userAgentApprox = document.createElement("p");
+userAgentApprox.textContent = `MEMORY APPROXIMATION: ${-1}`;*/
+
 perfDiv.appendChild(concurrencyAmount);
-perfDiv.appendChild(userAgentApprox);
+//perfDiv.appendChild(userAgentApprox);
 
 const perfCnv = document.getElementById("perfCanvas");
 const perfCtx = perfCnv.getContext("2d");
@@ -103,8 +102,9 @@ function drawGrid() {
 	perfCtx.fillRect(0, 0, 1, perfCnv.height);
 	perfCtx.fillText("FPS", 2, 10);
 }
+
 //Count	, Color
-const tests = [ [10	, "Green"	],//00
+const tests = [ [10	    , "Green"	],//00
 				[5000	, "Orange"	],
 				[10000	, "Red"		],
 				[0		, "Cyan"	] ] // 0 is for Dynamic
@@ -123,6 +123,7 @@ class Sprite {
 		this.velY;
 	}
 }
+
 const sprites = [];
 const shipSprite = new Sprite();
 shipSprite.name = "ship";
@@ -131,6 +132,8 @@ shipSprite.posY = 300;
 shipSprite.velX = 0;
 shipSprite.velY = 0;
 sprites.push(shipSprite);
+
+
 let seed = 1337;
 
 // Generate a million sprites via a very quick and dirty variation on the Park-Miller-Carta pseudo-random number generator.
@@ -147,178 +150,172 @@ for(let i = 0; i < 1000000; i++) {
 }
 
 let time = performance.now()
+
 let frame = 0;
-let max = 1;
-let testIndex = 0;
+let endFrame = perfCnv.width;
+
+let startSpriteCount = 0; // Number of sprites at the start
+let limitSpriteCount = 0; // Max number of sprites at the end.
+let frameSpriteCount = 0; // Total Number of sprites on the current frame.
+let spritesEachFrame = 0; // The number of sprites to add each frame.
+
 let currentEngine;
-let test;
+let currentEngineName = "None";
+
 let frameRequestId = null;
-let spriteAmount = 0;
-let chosenEngine;
 let dataSheet = [];
-let rampTarget = 0;
-let rampAmount = 0;
-let rampPacer = 0;
-let currentSprites;
+
 let checkCollision = false;
 
-function rampItUp() {
-	spriteAmount = Number(document.getElementById("renderAmount").value);
-	rampTarget = Number(document.getElementById("rampAmount").value);
-	console.log("we ramping lads");
-	rampAmount = (rampTarget - spriteAmount) / 1000;
-	console.log(rampAmount, rampTarget);
-	start();
-}
-
 function start() {
-	spriteAmount = Number(document.getElementById("renderAmount").value);
-	if (frameRequestId) {
-			cancelAnimationFrame(frameRequestId);
-			frameRequestId = null;
+	if (frameRequestId) { // Try to cancel any tests in progress
+		cancelAnimationFrame(frameRequestId);
+		frameRequestId = null;
 	}
-	if (currentEngine) {
+
+	if (currentEngine) { // Reset any existing loaded engines
 		currentEngine.destroy();
 	}
+
+	frame = 0;
+
+	// Reset game div
 	gameDiv.innerHTML = "";
-	chosenEngine = document.getElementById("engineSelect").value;
-	checkCollision = document.getElementById("failstate").checked;
-	console.log(chosenEngine, spriteAmount, document.getElementById("failstate").checked);
-	switch(chosenEngine){
+
+	currentEngineName = engineSelector.value;
+	checkCollision = collisionCheckBox.checked;
+
+	// Number of sprites at the start
+	startSpriteCount = Number(document.getElementById("startSpriteInput").value);
+	limitSpriteCount = Number(document.getElementById("endSpriteInput").value);
+	spritesEachFrame = Math.ceil((limitSpriteCount - startSpriteCount) / (endFrame - 1));
+
+	console.log(`Engine    : ${currentEngineName}`);
+	console.log(`Start     : ${startSpriteCount}`);
+	console.log(`End       : ${limitSpriteCount}`);
+	console.log(`Ramp      : ${spritesEachFrame}`);
+	console.log(`Collision : ${checkCollision}`);
+
+	switch(currentEngineName) {
 		case ("Canvas2D"):
-				console.log("Canvas selected");
-				currentEngine = new Canvas2DTest(gameDiv, resources, sprites);
-				break;
+			currentEngine = new Canvas2DTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("WebGL (2D)"):
-				console.log("WebGL selected");
-				currentEngine = new WebGlTest(gameDiv, resources, sprites);
-				break;
+			currentEngine = new WebGlTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("Three (2D)"):
-				console.log("Three 2d selected");
-				currentEngine = new Three2DTest(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new Three2DTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("Three (3D)"):
-				console.log("Three 3d selected");
-				currentEngine = new Three3DTest(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new Three3DTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("Babylon (2D)"):
-				console.log("Babylon selected");
-				currentEngine = new Babylon2DTest(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new Babylon2DTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("Babylon (3D)"):
-				console.log("Babylon 3d selected");
-				currentEngine = new Babylon3DTest(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new Babylon3DTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("Phaser"):
-				console.log("Phaser selected");
-				currentEngine = new PhaserTest(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new PhaserTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("Pixi"):
-				console.log("Pixi selected");
-				currentEngine = new PixiTest(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new PixiTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("P5"):
-				console.log("P5 selected");
-				currentEngine = new P5Test(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new P5Test(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("PlayCanvas (2D)"):
-				console.log("PlayCanvas selected");
-				currentEngine = new PlayCanvas2DTest(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new PlayCanvas2DTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
 		case ("PlayCanvas (3D)"):
-				console.log("PlayCanvas3D selected");
-				currentEngine = new PlayCanvas3DTest(gameDiv, resources, sprites, spriteAmount);
-				break;
-		case ("WebGL (3D)"):
-				console.log("webGL3D selected");
-				currentEngine = new PlayCanvas3DTest(gameDiv, resources, sprites, spriteAmount);
-				break;
+			currentEngine = new PlayCanvas3DTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;
+		/*case ("WebGL (3D)"):
+			currentEngine = new PlayCanvas3DTest(gameDiv, resources, sprites, startSpriteCount, limitSpriteCount);
+			break;*/
+		default:
+			alert(`Unknown Engine ${currentEngineName}`)
+			return;
 	}
-	dataSheet = [chosenEngine, "FRAME,FPS,FRAMETIME"];
-	//currentEngine = new Canvas2DTest(gameDiv, resources, sprites);
-	//const isFailChecked = document.getElementById("failstate").value;
-	concurrencyAmount.textContent ="CORES:" + String(window.navigator.hardwareConcurrency)
+	
+	// Create Datasheet header
+	dataSheet = [currentEngineName, "FRAME,FPS,FRAMETIME"];
+
 	update();
 }
+
 const inputhistory = [];
 const keyPresses = [];
 const keyChecks = new Map();
+
 window.onkeyup = (e) => {
 	keyChecks.set(e.keyCode, false);
 }
+
 window.onkeydown = (e) => {
 	keyChecks.set(e.keyCode, true);
 }
 
-//let gameOver = false;
 async function update() {
 	const now = performance.now();
 	let fps = 1000 / (now - time);
 	time = now;
+
 	inputhistory.push(new Map(keyChecks));
+
 	if(frame == 0) { // First frame of a test
 		drawGrid();
-		test = spriteAmount;
-		max = spriteAmount;
-		currentSprites = spriteAmount;
 	}
-	else if (rampTarget > 0 && currentSprites < rampTarget) {
-		console.log(rampPacer);
-		if (rampPacer > 1) {
-			const intPart = String(rampPacer).split(".")[0];
-			const decimalPart= String(rampPacer).split(".")[1];
-			console.log("adding",intPart,"sprites");
-			currentSprites += Number(intPart);
-			rampPacer = Number(decimalPart);
-		}
-		else {
-			rampPacer += rampAmount;
-		}
-	}
-	const timeHere = performance.now();
-	const returnVal = currentEngine.drawFrame(frame, currentSprites, inputhistory[frame], rampAmount, checkCollision);
-	if (chosenEngine == "P5" && returnVal) {
+
+	// Calculate how many sprites should exist on this frame
+	frameSpriteCount = Math.min(startSpriteCount + (spritesEachFrame * frame), limitSpriteCount)
+
+	const timeBeforeDraw = performance.now();
+	const returnVal = currentEngine.drawFrame(frame, frameSpriteCount, inputhistory[frame], checkCollision);
+	const frameTime = performance.now() - timeBeforeDraw;
+
+	// Note: The P5  frame counter probably doesn't take external stuff into account (our graphs, etc) and will report incorrect data. Not an apples to apples comparison.
+	/*if (currentEngineName == "P5" && returnVal) {
 		userAgentApprox.textContent = "FPS: " + String(returnVal.rate) + "\tFCOUNT: " + String(returnVal.count);
 		fps = returnVal.rate
-	}
-	const timeAfter = performance.now();
-	const frameTime = (timeAfter - timeHere);
-	dataSheet.push((String(frame+1)+","+String(fps)+","+String(frameTime)+","+String(currentSprites)));
-	drawMetrics(frame, fps, test, frameTime);
-	/*if(test[0] == 0) { // Dynamicly increase sprites if in the 0 test.
-		max = Math.min(max + 10, sprites.length);
 	}*/
+
+	if(csvBox) {
+		dataSheet.push((String(frame+1)+","+String(fps)+","+String(frameTime)+","+String(frameSpriteCount)));
+	}
+
+	drawMetrics(frame, fps, frameTime);
 
 	frame++;
 
 	if(frame % perfCnv.width == 0) { // Reset graph for next test at end.
 		//drawGrid();
-		if (document.getElementById("generatecsv").checked) {
+		if (csvBox.checked) {
 			donwloadData();
 		}
 		console.log("the end");
-	}
-	else {
+	} else {
 		frameRequestId = requestAnimationFrame(update);
 	}
 }
 
-function drawMetrics(frame, fps, test, frameTime) {
-	perfCtx.fillStyle = "White";
-	perfCtx.fillRect(perfCnv.width - 100, 2, 100, 70);
+function drawMetrics(frame, fps, frameTime) {
+	perfCtx.fillStyle = "#272822";
+	perfCtx.fillRect(perfCnv.width - 140, 13, 140, 50);
 
-	perfCtx.fillStyle = "Black";
-	perfCtx.fillText(`NUM : ${currentSprites}`, perfCnv.width - 90, 42);
-
-	perfCtx.fillStyle = "GREEN";
-	perfCtx.fillText(`FPS : ${fps.toFixed(0)}`, perfCnv.width - 90, 22);
+	perfCtx.fillStyle = "#6a9955";
+	perfCtx.fillText(`FRAME/SEC : ${fps.toFixed(0)}`, perfCnv.width - 140, 22);
 	perfCtx.fillRect(frame % 1000, Math.max(height - Math.ceil((fps * (height / 100))), 0), 1, 1);
 
-	perfCtx.fillStyle = "PINK";
-	perfCtx.fillText(`FT : ${frameTime} ms`, perfCnv.width - 90, 62);
+	perfCtx.fillStyle = "#4fc1ff";
+	perfCtx.fillText(`SPRITE AMOUNT : ${frameSpriteCount}`, perfCnv.width - 140, 42);
+
+	perfCtx.fillStyle = "#ffb518";
+	perfCtx.fillText(`FRAMETIME : ${frameTime} ms`, perfCnv.width - 140, 62);
 	perfCtx.fillRect(frame % 1000, Math.max(height - Math.ceil((frameTime * (height / 100))), 0), 1, 1);
 }
-function donwloadData(){
+
+function donwloadData() {
 	const csvData = dataSheet.join("\n");
 	const name = String(currentEngine+".csv");
 	const blob = new Blob([csvData], { type: "text/csv" });

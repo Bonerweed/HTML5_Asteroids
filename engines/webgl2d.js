@@ -1,5 +1,5 @@
 export default class WebGlTest {
-	constructor(div, resourceLocations, sprites, firstMax) {
+	constructor(div, resourceLocations, sprites, spriteCount, limitSpriteCount) {
 		this.rawSprites = sprites;
 
 		const cnv = document.createElement('canvas');
@@ -11,7 +11,7 @@ export default class WebGlTest {
 		this.gl = gl;
 
 		gl.disable(gl.DEPTH_TEST);
-		gl.enable(gl.BLEND);
+		//gl.enable(gl.BLEND);
 		//gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_SRC_ALPHA); We need to handle alpha to be 100% accurate
 
 		// Needed for geometry instancing.
@@ -39,7 +39,13 @@ export default class WebGlTest {
 			uniform sampler2D uSampler;
 
 			void main(void) {
-				gl_FragColor = texture2D(uSampler, vTextureCoord);
+				vec4 frag = texture2D(uSampler, vTextureCoord);
+
+				if(frag.a < 0.5) { // This is a little slower, but more common
+					discard;
+				}
+
+				gl_FragColor = frag;
 			}
 		`;
 
@@ -64,7 +70,7 @@ export default class WebGlTest {
 
 		const off = []
 
-		for(var i = 0; i < sprites.length; i++) {
+		for(var i = 0; i < limitSpriteCount; i++) {
 			const sprite = sprites[i];
 
 			const x = ((sprite.posX % 824) + 824) % 824 - 24;
@@ -131,13 +137,13 @@ export default class WebGlTest {
 		this.vaoExt.bindVertexArrayOES(null);
 	}
 
-	drawFrame(frame, max, inputs, rampAmount, collision) {
+	drawFrame(frame, currentSprites, inputs, newSpritesPerFrame, collision) {
 		const gl = this.gl;
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		this.vaoExt.bindVertexArrayOES(this.vao);
 
-		for(var i = 1; i < max; i++) {
+		for(var i = 1; i < currentSprites; i++) {
 			const sprite = this.rawSprites[i];
 
 			const x = (((sprite.posX + (sprite.velX * frame)) % 824) + 824) % 824 - 24;
@@ -197,7 +203,7 @@ export default class WebGlTest {
 											6, 					// Instance Index Count
 											gl.UNSIGNED_SHORT,  // Type
 											0, 					// Offset
-											max);				// Number to draw
+											currentSprites);				// Number to draw
 
 		// Draw Ship
 		gl.activeTexture(gl.TEXTURE0);
@@ -210,7 +216,9 @@ export default class WebGlTest {
 											0, 					// Offset
 											1);					// Number to draw
 
-		this.checkCollision(max);
+		if(collision) {
+			this.checkCollision(currentSprites);
+		}
 	}
 
 	checkCollision(max) {
@@ -292,4 +300,6 @@ export default class WebGlTest {
 
 		return texture;
 	}
+
+	destroy() { /* There may be a way to free up the memory used for textures/buffers here */ };
 }

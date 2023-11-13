@@ -1,6 +1,6 @@
 //import * as PIXI from "pixi";
 export default class PixiTest {
-	constructor(div, resourceLocations, sprites, firstMax) {
+	constructor(div, resourceLocations, sprites, firstMax, limitSpriteCount) {
 		//this.app = new PIXI.Application();
 		//div.appendChild(this.app.view);
 		this.rawSprites = sprites;
@@ -24,6 +24,7 @@ export default class PixiTest {
 		await promise;
 		console.log("promise over");
 		const app = new PIXI.Application(div.offsetWidth, div.offsetHeight);
+		app.renderer.background.color = "1e1f1c";
 		console.log(app);
 		this.app = app;
 		div.appendChild(this.app.view);
@@ -49,24 +50,21 @@ export default class PixiTest {
 		}
 	}
 
-	drawFrame(frame, max, inputs, rampAmount, collision) {
+	drawFrame(frame, frameSpriteCount, inputs, collision) {
 		if (!this.ship || this.gameElements.length <= 0) {
 			return;
 		}
-		if (rampAmount > 0 && this.gameElements.length < 1000000) {
-			const additionalSprites = this.gameElements.length + rampAmount > 1000000 ? 1000000 - this.gameElements.length : rampAmount;
-			const existingSprites = this.gameElements.length;
-			for (let i = 0; i < additionalSprites; i++) {
-				const sprite = this.rawSprites[i + 1 + existingSprites];
-				const x = ((sprite.posX % 824) + 824) % 824 - 24;
-				const y = ((sprite.posY % 624) + 624) % 624 - 24;
-				const rock = PIXI.Sprite.from(this.rockImage);
-				rock.anchor.set(0.5);
-				rock.position.set(x, y);
-				this.gameElements.push(rock);
-				this.gameContainer.addChild(rock);
-			}
+
+		while(this.gameElements.length - 1 < frameSpriteCount) {
+			const sprite = this.rawSprites[this.gameElements.length + 1];
+			const rock = PIXI.Sprite.from(this.rockImage);
+			rock.anchor.set(0.5);
+			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
+			                  ((sprite.posY % 624) + 624) % 624 - 24);
+			this.gameElements.push(rock);
+			this.gameContainer.addChild(rock);
 		}
+		
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const rock = this.gameElements[i];
 			const rockSprite = this.rawSprites[i + 1];
