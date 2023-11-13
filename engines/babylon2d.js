@@ -144,7 +144,7 @@ export default class Babylon2dTest {
 			if (diff <= 12) {
 				console.log(diff);
 				//debugger;
-				//break;
+				break;
 				//return true;
 			}
 		}
