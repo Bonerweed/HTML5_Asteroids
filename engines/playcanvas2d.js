@@ -249,16 +249,16 @@ export default class PlayCanvas2DTest {
     //ship.translate(0.1,0,0);
   } 
   checkCollision(){
-    const shipPos = this.ship.getPosition();
+    const shipPos = this.ship.getLocalPosition();
 		for (let i = 0; i < this.rockList.length; i++) {
-			const sprite = this.rockList[i].getPosition();
+			const sprite = this.rockList[i].getLocalPosition();
       console.log(shipPos.x, shipPos.y, sprite.x, sprite.y);
 			const dx = (shipPos.x - sprite.x);
 			const dy = (shipPos.y - sprite.y);
 			const diff = Math.sqrt( (dx * dx) + (dy * dy) );
       console.log(dx, dy, diff);
-			debugger;
-			if (diff <= 12) {
+			//debugger;
+			if (diff <= 24) {
 				console.log("pow");
 				//debugger;
 				break;
