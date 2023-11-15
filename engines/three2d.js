@@ -1,5 +1,3 @@
-let rockMaterial;
-let group;
 export default class Three2dTest {
 	constructor(div, resourceLocations, sprites, firstMax, limitSpriteCount) {
 		this.rawSprites = sprites;
@@ -35,10 +33,10 @@ export default class Three2dTest {
 
 		div.appendChild(this.renderer.domElement);
 
-		group = new THREE.Group();
-		group.scale.y = -1; // Flip the y axis because Three's OrthographicCamera bottom is the lower value.
-		group.position.y = div.offsetHeight;
-		this.scene.add(group);
+		this.group = new THREE.Group();
+		this.group.scale.y = -1; // Flip the y axis because Three's OrthographicCamera bottom is the lower value.
+		this.group.position.y = div.offsetHeight;
+		this.scene.add(this.group);
 
 		const shipMap = new THREE.TextureLoader().load(resourceLocations.get("ship"));
 		const shipMaterial = new THREE.SpriteMaterial({ map: shipMap });
@@ -47,20 +45,20 @@ export default class Three2dTest {
 		this.ship = new THREE.Sprite(shipMaterial);
 		this.ship.scale.set(24, 24, 1)
 		this.ship.position.set(shipSprite.posX, shipSprite.posY, 0);
-		group.add(this.ship);
+		this.group.add(this.ship);
 
 		const rockMap = new THREE.TextureLoader().load(resourceLocations.get("rock"));
-		rockMaterial = new THREE.SpriteMaterial({ map: rockMap });
+		this.rockMaterial = new THREE.SpriteMaterial({ map: rockMap });
 
 		for (let i = 0; i < firstMax; i++) {
 			const sprite = this.rawSprites[i + 1];
 			const x = ((sprite.posX % 824) + 824) % 824 - 24;
 			const y = ((sprite.posY % 624) + 624) % 624 - 24;
-			const rock = new THREE.Sprite(rockMaterial);
+			const rock = new THREE.Sprite(this.rockMaterial);
 			rock.scale.set(24, 24, 1);
 			rock.position.set(x, y, 0);
 			this.gameElements.push(rock);
-			group.add(rock);
+			this.group.add(rock);
 		}
 	}
 
@@ -71,13 +69,13 @@ export default class Three2dTest {
 
 		while(this.gameElements.length - 1 < frameSpriteCount) {
 			const sprite = this.rawSprites[this.gameElements.length + 1];
-			const rock = new THREE.Sprite(rockMaterial);
+			const rock = new THREE.Sprite(this.rockMaterial);
 			rock.scale.set(24, 24, 1);
 			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
 			                  ((sprite.posY % 624) + 624) % 624 - 24,
 							  0);
 			this.gameElements.push(rock);
-			group.add(rock);
+			this.group.add(rock);
 		}
 
 		for (let i = 0; i < this.gameElements.length; i++) {

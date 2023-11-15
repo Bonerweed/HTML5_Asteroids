@@ -98,7 +98,6 @@ export default class PlayCanvas3DTest {
     this.app.root.addChild(this.camera);
     this.app.root.addChild(this.light);
     this.camera.setPosition(400, 300, 60);
-    console.log(this.ship);
   }
 
   drawFrame(frame, frameSpriteCount, inputs, collision){
@@ -106,7 +105,7 @@ export default class PlayCanvas3DTest {
       return false;
     }
 
-    while(this.rockList.length < frameSpriteCount) {
+    while(this.rockList.length - 1 < frameSpriteCount) {
       const sprite = this.spriteData[this.rockList.length + 1];
       const x = ((sprite.posX % 824) + 824) % 824 - 24;
       const y = ((sprite.posY % 624) + 624) % 624 - 24;

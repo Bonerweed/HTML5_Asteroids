@@ -60,7 +60,7 @@ export default class PixiTest {
 			const rock = PIXI.Sprite.from(this.rockImage);
 			rock.anchor.set(0.5);
 			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
-			                  ((sprite.posY % 624) + 624) % 624 - 24);
+							  ((sprite.posY % 624) + 624) % 624 - 24);
 			this.gameElements.push(rock);
 			this.gameContainer.addChild(rock);
 		}
@@ -68,19 +68,17 @@ export default class PixiTest {
 		for (let i = 0; i < this.gameElements.length; i++) {
 			const rock = this.gameElements[i];
 			const rockSprite = this.rawSprites[i + 1];
-			const x = (((rockSprite.posX + (rockSprite.velX * frame)) % 824) + 824) % 824 - 24;
-			const y = (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24;
-			rock.position.set(x, y);
+			rock.position.set((((rockSprite.posX + (rockSprite.velX * frame)) % 824) + 824) % 824 - 24,
+							 (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24);
 		}
+
 		const shipSprite = this.rawSprites[0];
 		//Y position
 		if (inputs.get(83)) {
 			shipSprite.velY += 0.01;
-		}
-		else if (inputs.get(87)) {
+		} else if (inputs.get(87)) {
 			shipSprite.velY -= 0.01;
-		}
-		else {
+		} else {
 			if (shipSprite.velY != 0) {
 				shipSprite.velY *= 0.99;
 			}
@@ -89,11 +87,9 @@ export default class PixiTest {
 		//X position
 		if (inputs.get(68)) {
 			shipSprite.velX += 0.01;
-		}
-		else if (inputs.get(65)) {
+		} else if (inputs.get(65)) {
 			shipSprite.velX -= 0.01;
-		}
-		else {
+		} else {
 			if (shipSprite.velX != 0) {
 				shipSprite.velX *= 0.99;
 			}
@@ -102,11 +98,12 @@ export default class PixiTest {
 		if (collision) {
 			const shipHit = this.checkCollision();
 		}
+
 		shipSprite.posX += shipSprite.velX;
 		shipSprite.posY += shipSprite.velY;
-		const x = ((shipSprite.posX % 824) + 828) % 824 - 28;
-		const y = ((shipSprite.posY % 624) + 628) % 624 - 28;
-		this.ship.position.set(x, y);
+
+		this.ship.position.set(((shipSprite.posX % 824) + 828) % 824 - 28,
+							   ((shipSprite.posY % 624) + 628) % 624 - 28);
 	}
 
 	checkCollision() {

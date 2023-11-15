@@ -168,7 +168,7 @@ export default class PlayCanvas2DTest {
       return false;
     }
 
-    while(this.rockList.length < frameSpriteCount) {
+    while(this.rockList.length - 1 < frameSpriteCount) {
 			const sprite = this.spriteData[this.rockList.length + 1];
       const x = ((sprite.posX % 824) + 824) % 824 - 24;
       const y = ((sprite.posY % 624) + 624) % 624 - 24;
@@ -240,7 +240,7 @@ export default class PlayCanvas2DTest {
     ship.posY += ship.velY;
     const x = ((ship.posX % 824) + 828) % 824 - 28;
     const y = ((ship.posY % 624) + 628) % 624 - 28;
-    //console.log(x, y);
+    console.log(x, y);
     this.ship.setLocalPosition(new pc.Vec3(x,y,0));
     if (collision) {
       this.checkCollision();

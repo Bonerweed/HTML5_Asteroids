@@ -67,11 +67,11 @@ debugDiv.appendChild(csvlabel);
 const concurrencyAmount = document.createElement("p");
 concurrencyAmount.textContent = `CORES: ${window.navigator.hardwareConcurrency}`
 
-/*const userAgentApprox = document.createElement("p");
-userAgentApprox.textContent = `MEMORY APPROXIMATION: ${-1}`;*/
+const userAgentApprox = document.createElement("p");
+userAgentApprox.textContent = `MEMORY APPROXIMATION: ${-1}`;
 
 perfDiv.appendChild(concurrencyAmount);
-//perfDiv.appendChild(userAgentApprox);
+perfDiv.appendChild(userAgentApprox);
 
 const perfCnv = document.getElementById("perfCanvas");
 const perfCtx = perfCnv.getContext("2d");
@@ -259,6 +259,7 @@ window.onkeydown = (e) => {
 async function update() {
 	const now = performance.now();
 	let fps = 1000 / (now - time);
+	//console.log(performance.now())
 	time = now;
 
 	inputhistory.push(new Map(keyChecks));
@@ -308,10 +309,10 @@ function drawMetrics(frame, fps, frameTime) {
 	perfCtx.fillRect(frame % 1000, Math.max(height - Math.ceil((fps * (height / 100))), 0), 1, 1);
 
 	perfCtx.fillStyle = "#4fc1ff";
-	perfCtx.fillText(`SPRITE AMOUNT : ${frameSpriteCount}`, perfCnv.width - 140, 42);
+	perfCtx.fillText(`SPRITENUM : ${frameSpriteCount}`, perfCnv.width - 140, 42);
 
 	perfCtx.fillStyle = "#ffb518";
-	perfCtx.fillText(`FRAMETIME : ${frameTime} ms`, perfCnv.width - 140, 62);
+	perfCtx.fillText(`FRAMETIME : ${frameTime.toFixed(0)} ms`, perfCnv.width - 140, 62);
 	perfCtx.fillRect(frame % 1000, Math.max(height - Math.ceil((frameTime * (height / 100))), 0), 1, 1);
 }
 

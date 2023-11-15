@@ -1,4 +1,3 @@
-let transformNode;
 export default class Babylon3DTest {
 	constructor(div, resourceLocations, sprites, firstMax) {
 		this.rawSprites = sprites;
@@ -20,7 +19,7 @@ export default class Babylon3DTest {
 		});
 
 		await promise;
-		console.log("promise over");
+		console.log("Engine Loaded");
 
 		const cnv = document.createElement('canvas');
 		cnv.width  = div.offsetWidth;
@@ -39,9 +38,9 @@ export default class Babylon3DTest {
 		camera.orthoTop = div.offsetHeight;
 		camera.orthoBottom = 0;
 
-		transformNode = new BABYLON.TransformNode(); // We use a transform to convert the top to 0 and the bottom to 600.
-		transformNode.scaling.y = -1;
-		transformNode.position.y = 600;
+		this.transformNode = new BABYLON.TransformNode(); // We use a transform to convert the top to 0 and the bottom to 600.
+		this.transformNode.scaling.y = -1;
+		this.transformNode.position.y = 600;
 
 		const shipSprite = this.rawSprites[0];
 
@@ -52,7 +51,7 @@ export default class Babylon3DTest {
 		this.ship.width = 24;
 		this.ship.height = 24;
 		this.ship.position.set(shipSprite.posX, shipSprite.posY, 0)
-		this.ship.parent = transformNode;
+		this.ship.parent = this.transformNode;
 
 		const shipMat = new BABYLON.StandardMaterial("redMat");
 		shipMat.diffuseColor = new BABYLON.Color3.FromHexString("#D77BBA");
@@ -60,19 +59,21 @@ export default class Babylon3DTest {
 		shipMat.specularColor = new BABYLON.Color3(0, 0, 0);
 		this.ship.material = shipMat;
 
-		this.rockMat = new BABYLON.StandardMaterial("redMat");
-		this.rockMat.diffuseColor = new BABYLON.Color3.FromHexString("#663931");
-		this.rockMat.ambientColor = new BABYLON.Color3.FromHexString("#663931");
-		this.rockMat.specularColor = new BABYLON.Color3(0, 0, 0);
+		const rockMat = new BABYLON.StandardMaterial("redMat");
+		rockMat.diffuseColor = new BABYLON.Color3.FromHexString("#663931");
+		rockMat.ambientColor = new BABYLON.Color3.FromHexString("#663931");
+		rockMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+		this.rockMesh = BABYLON.MeshBuilder.CreateSphere("sphere", {diameterX: 24, diameterY: 24, diameterZ: 24});
+		this.rockMesh.material = rockMat;
+		this.rockMesh.parent = this.transformNode;
 
 		for (let i = 0; i < firstMax; i++) {
 			const sprite = this.rawSprites[i + 1];
-			const x = ((sprite.posX % 824) + 824) % 824 - 24;
-			const y = ((sprite.posY % 624) + 624) % 624 - 24;
-			const rock = BABYLON.MeshBuilder.CreateSphere("sphere", {diameterX: 24, diameterY: 24, diameterZ: 24});
-			rock.position.set(sprite.posX, sprite.posY, 0);
-			rock.material = this.rockMat;
-			rock.parent = transformNode;
+			const rock = this.rockMesh.createInstance("r");
+			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
+			                  ((sprite.posY % 624) + 624) % 624 - 24,
+			                  0);
 			this.gameElements.push(rock);
 		}
 	}
@@ -82,14 +83,12 @@ export default class Babylon3DTest {
 			return;
 		}
 
-		while(this.gameElements.length - 1 < frameSpriteCount) {
+		while(this.gameElements.length < frameSpriteCount) {
 			const sprite = this.rawSprites[this.gameElements.length + 1];
-			const rock = BABYLON.MeshBuilder.CreateSphere("sphere", {diameterX: 24, diameterY: 24, diameterZ: 24});
+			const rock = this.rockMesh.createInstance("r");
 			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
 			                  ((sprite.posY % 624) + 624) % 624 - 24,
 							  0);
-			rock.material = this.rockMat;
-			rock.parent = transformNode;
 			this.gameElements.push(rock);
 		}
 
@@ -100,15 +99,15 @@ export default class Babylon3DTest {
 			const y = (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24;
 			rock.position.set(x, y, 0);
 		}
+
 		const shipSprite = this.rawSprites[0];
+		
 		//Y position
 		if (inputs.get(83)) {
 			shipSprite.velY += 0.01;
-		}
-		else if (inputs.get(87)) {
+		} else if (inputs.get(87)) {
 			shipSprite.velY -= 0.01;
-		}
-		else {
+		} else {
 			if (shipSprite.velY != 0) {
 				shipSprite.velY *= 0.99;
 			}
@@ -117,11 +116,9 @@ export default class Babylon3DTest {
 		//X position
 		if (inputs.get(68)) {
 			shipSprite.velX += 0.01;
-		}
-		else if (inputs.get(65)) {
+		} else if (inputs.get(65)) {
 			shipSprite.velX -= 0.01;
-		}
-		else {
+		} else {
 			if (shipSprite.velX != 0) {
 				shipSprite.velX *= 0.99;
 			}
@@ -130,11 +127,13 @@ export default class Babylon3DTest {
 		if (collision) {
 			const shipHit = this.checkCollision();
 		}
+
 		shipSprite.posX += shipSprite.velX;
 		shipSprite.posY += shipSprite.velY;
-		const x = ((shipSprite.posX % 824) + 828) % 824 - 28;
-		const y = ((shipSprite.posY % 624) + 628) % 624 - 28;
-		this.ship.position.set(x, y, 0);
+
+		this.ship.position.set(((shipSprite.posX % 824) + 828) % 824 - 28,
+		                        ((shipSprite.posY % 624) + 628) % 624 - 28,
+								0);
 
 		this.scene.render();
 	}
@@ -146,12 +145,9 @@ export default class Babylon3DTest {
 			const rock = this.gameElements[i];
 			const diff = BABYLON.Vector3.Distance(shipPos, rock.position);
 
-			//console.log(diff);
-			//debugger;
 			if (diff <= 12) {
 				console.log(diff);
 				break;
-				//return true;
 			}
 		}
 	}

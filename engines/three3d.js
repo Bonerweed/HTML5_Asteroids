@@ -1,4 +1,3 @@
-let group;
 export default class Three3dTest {
 	constructor(div, resourceLocations, sprites, firstMax, limitSpriteCount) {
 		this.rawSprites = sprites;
@@ -35,12 +34,12 @@ export default class Three3dTest {
 
 		div.appendChild(this.renderer.domElement);
 
-		group = new THREE.Group();
-		group.scale.y = -1; // Flip the y axis because Three's OrthographicCamera bottom is the lower value.
-		group.position.y = div.offsetHeight;
-		this.scene.add(group);
+		this.group = new THREE.Group();
+		this.group.scale.y = -1; // Flip the y axis because Three's OrthographicCamera bottom is the lower value.
+		this.group.position.y = div.offsetHeight;
+		this.scene.add(this.group);
 
-		const sphereGeometry = new THREE.SphereGeometry(12, 32, 16);
+		this.sphereGeometry = new THREE.SphereGeometry(12, 32, 16);
 
 		const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 		directionalLight.position.x = 1;
@@ -51,24 +50,22 @@ export default class Three3dTest {
 		this.scene.add(light);
 
 		const shipSprite = this.rawSprites[0];
-		this.ship = new THREE.Mesh( sphereGeometry, new THREE.MeshLambertMaterial({ color: 0xD77BBA } ));
+		this.ship = new THREE.Mesh( this.sphereGeometry, new THREE.MeshLambertMaterial({ color: 0xD77BBA } ));
 		this.ship.scale.y = 0.5;
 		this.ship.position.set(shipSprite.posX, shipSprite.posY, 0);
-		group.add(this.ship);
+		this.group.add(this.ship);
 
-
-		const rockMap = new THREE.TextureLoader().load(resourceLocations.get("rock"));
-		const rockMaterial = new THREE.SpriteMaterial({ map: rockMap });
+		this.rockMaterial = new THREE.MeshLambertMaterial({ color: 0x663931 })
 
 		for (let i = 0; i < firstMax; i++) {
 			const sprite = this.rawSprites[i + 1];
 			const x = ((sprite.posX % 824) + 824) % 824 - 24;
 			const y = ((sprite.posY % 624) + 624) % 624 - 24;
 
-			const rock = new THREE.Mesh(sphereGeometry, new THREE.MeshLambertMaterial({ color: 0x663931 }));
+			const rock = new THREE.Mesh(this.sphereGeometry, this.rockMaterial);
 			rock.position.set(x, y, 0);
 			this.gameElements.push(rock);
-			group.add(rock);
+			this.group.add(rock);
 		}
 	}
 
@@ -78,15 +75,13 @@ export default class Three3dTest {
 		}
 
 		while(this.gameElements.length - 1 < frameSpriteCount) {
-			const sphereGeometry = new THREE.SphereGeometry(12, 32, 16);
 			const sprite = this.rawSprites[this.gameElements.length + 1];
-
-			const rock = new THREE.Mesh(sphereGeometry, new THREE.MeshLambertMaterial({ color: 0x663931 }));
+			const rock = new THREE.Mesh(this.sphereGeometry, this.rockMaterial);
 			rock.position.set(((sprite.posX % 824) + 824) % 824 - 24,
 			                  ((sprite.posY % 624) + 624) % 624 - 24,
 							  0);
 			this.gameElements.push(rock);
-			group.add(rock);
+			this.group.add(rock);
 		}
 
 		for (let i = 0; i < this.gameElements.length; i++) {
@@ -96,15 +91,15 @@ export default class Three3dTest {
 			const y = (((rockSprite.posY + (rockSprite.velY * frame)) % 624) + 624) % 624 - 24;
 			rock.position.set(x, y, 0);
 		}
+
 		const shipSprite = this.rawSprites[0];
+		
 		//Y position
 		if (inputs.get(83)) {
 			shipSprite.velY += 0.01;
-		}
-		else if (inputs.get(87)) {
+		} else if (inputs.get(87)) {
 			shipSprite.velY -= 0.01;
-		}
-		else {
+		} else {
 			if (shipSprite.velY != 0) {
 				shipSprite.velY *= 0.99;
 			}
@@ -113,23 +108,23 @@ export default class Three3dTest {
 		//X position
 		if (inputs.get(68)) {
 			shipSprite.velX += 0.01;
-		}
-		else if (inputs.get(65)) {
+		} else if (inputs.get(65)) {
 			shipSprite.velX -= 0.01;
-		}
-		else {
+		} else {
 			if (shipSprite.velX != 0) {
 				shipSprite.velX *= 0.99;
 			}
 		}
+
 		if (collision) {
 			const shipHit = this.checkCollision();
 		}
+
 		shipSprite.posX += shipSprite.velX;
 		shipSprite.posY += shipSprite.velY;
-		const x = ((shipSprite.posX % 824) + 828) % 824 - 28;
-		const y = ((shipSprite.posY % 624) + 628) % 624 - 28;
-		this.ship.position.set(x, y, 0);
+
+		this.ship.position.set(((shipSprite.posX % 824) + 828) % 824 - 28,
+		                       ((shipSprite.posY % 624) + 628) % 624 - 28, 0);
 
 		this.renderer.render(this.scene, this.camera);
 	}

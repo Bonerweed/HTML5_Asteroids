@@ -70,7 +70,7 @@ export default class WebGlTest {
 
 		const off = []
 
-		for(var i = 0; i < limitSpriteCount; i++) {
+		for(var i = 0; i < sprites.length; i++) {
 			const sprite = sprites[i];
 
 			const x = ((sprite.posX % 824) + 824) % 824 - 24;
